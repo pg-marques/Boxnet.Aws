@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Lib", "Boxnet.Aws.Lib\Boxnet.Aws.Lib.csproj", "{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.IntegrationTests", "Boxnet.Aws.IntegrationTests\Boxnet.Aws.IntegrationTests.csproj", "{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
