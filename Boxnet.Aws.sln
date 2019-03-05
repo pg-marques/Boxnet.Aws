@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Lib", "Boxnet.Aw
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.IntegrationTests", "Boxnet.Aws.IntegrationTests\Boxnet.Aws.IntegrationTests.csproj", "{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Lib", "1 - Lib", "{FDB52034-1986-466E-845C-5EF6EBBB56D8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Tests", "2 - Tests", "{8D3E039C-C1B2-453A-8DA1-22A00B3D85AC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +28,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7} = {FDB52034-1986-466E-845C-5EF6EBBB56D8}
+		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB} = {8D3E039C-C1B2-453A-8DA1-22A00B3D85AC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {980E4E98-9BD9-458E-8537-6EA4B8E53A70}

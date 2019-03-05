@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Boxnet.Aws.IntegrationTests
+{
+    public interface IIamGroupsDisposableService : IDisposable
+    {
+        Task<IEnumerable<IamGroup>> ListByFilterAsync(IResourceIdFilter filter);
+        Task CreateAsync(IamGroup group);
+        Task DeleteAsync(IamGroup group);
+    }
+}
