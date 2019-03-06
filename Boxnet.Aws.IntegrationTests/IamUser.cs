@@ -4,16 +4,14 @@ using System.Text;
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamUser
+    public class IamUser : Entity<IamUserId>, IResource<IamUserId>
     {
         private readonly IList<IamGroupId> groupIds = new List<IamGroupId>();
-        public IamUserId Id { get; }
         public string Path { get; }
         public IEnumerable<IamGroupId> GroupsIds { get { return groupIds; } }
 
-        public IamUser(IamUserId id, string path)
+        public IamUser(IamUserId id, string path):base(id)
         {
-            Id = id;
             Path = path;
         }
 

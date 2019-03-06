@@ -27,8 +27,14 @@ namespace Boxnet.Aws.IntegrationTests
             var users = Enumerable.Empty<IamUser>();
             var filter = new ResourceNameContainsCaseInsensitiveFilter("Morpheus");
 
+            var oldRepository = new IamUsersJsonFileRepository(@"C:\Users\paul.marques\Desktop\InfraApp\SummerProd\Old_IamUsers.json");
+            var newRepository = new IamUsersJsonFileRepository(@"C:\Users\paul.marques\Desktop\InfraApp\SummerProd\New_IamUsers.json");
+
             using (var boxnetIamUsersService = new IamUsersService(boxnetAwsAccessKeyId, boxnetAwsAccessKey, defaultAwsEndpointRegion))
                 users = await boxnetIamUsersService.ListByFilterAsync(filter);
+
+            foreach (var user in users)
+                await oldRepository.AddAsync(user);
 
             //Handling
             var stackPrefix = "SummerProd";            
@@ -43,11 +49,17 @@ namespace Boxnet.Aws.IntegrationTests
                 newUsers.Add(new IamUser(id, user.Path));
             }
 
+            foreach (var user in newUsers)
+                await newRepository.AddAsync(user);
+
             //Restore
             using (var infraAppIamUsersService = new IamUsersService(infraAppAccessKeyId, infraAppAccessKey, defaultAwsEndpointRegion))
             {
                 foreach (var user in newUsers)
+                {
                     await infraAppIamUsersService.CreateAsync(user);
+                    await newRepository.SaveAsync(user);
+                }
 
                 foreach (var user in newUsers)
                     await infraAppIamUsersService.DeleteAsync(user);

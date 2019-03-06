@@ -5,9 +5,9 @@ namespace Boxnet.Aws.IntegrationTests
 {
     public interface IIamGroupsRepository
     {
-        Task AddAsync(IamGroup policy);
-        Task SaveAsync(IamGroup IamRole);
-        Task DeleteAsync(IamGroup policy);
+        Task AddAsync(IamGroup group);
+        Task SaveAsync(IamGroup group);
+        Task DeleteAsync(IamGroup group);
         Task<IamGroup> ByAsync(IamGroupId id);
         Task<IEnumerable<IamGroup>> AllAsync();
     }

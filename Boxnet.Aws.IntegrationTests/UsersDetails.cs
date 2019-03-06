@@ -36,7 +36,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             return details.Select(detail =>
             {
-                var user = new IamUser(new IamUserId(detail.Arn, detail.UserName), detail.Path);
+                var user = new IamUser(new IamUserId(detail.UserName, detail.Arn), detail.Path);
 
                 foreach (var group in detail.GroupList.Where(groupName => filter.IsSatisfiedBy(new IamGroupId(groupName))))
                     user.AddGroupId(new IamGroupId(group));

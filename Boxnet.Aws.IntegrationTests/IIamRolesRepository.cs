@@ -7,9 +7,9 @@ namespace Boxnet.Aws.IntegrationTests
 {
     public interface IIamRolesRepository
     {
-        Task AddAsync(IamRole policy);
-        Task SaveAsync(IamRole IamRole);
-        Task DeleteAsync(IamRole policy);
+        Task AddAsync(IamRole role);
+        Task SaveAsync(IamRole role);
+        Task DeleteAsync(IamRole role);
         Task<IamRole> ByAsync(IamRoleId id);
         Task<IEnumerable<IamRole>> AllAsync();
     }

@@ -37,7 +37,7 @@ namespace Boxnet.Aws.IntegrationTests
 
             foreach (var role in roles)
             {
-                var id = new IamRoleId(string.Format("{0}{1}", stackPrefix, role.Id.Name));
+                var id = new IamRoleId(string.Format("{0}_{1}", stackPrefix, role.Id.Name));
                 id.AddAlias(role.Id.Name);
                 id.AddAlias(role.Id.Arn);
 

@@ -42,7 +42,7 @@ namespace Boxnet.Aws.IntegrationTests
 
             foreach (var group in groups)
             {
-                var id = new IamGroupId(string.Format("{0}{1}", stackPrefix, group.Id.Name));
+                var id = new IamGroupId(string.Format("{0}_{1}", stackPrefix, group.Id.Name));
                 id.AddAlias(group.Id.Name);
                 id.AddAlias(group.Id.Arn); 
                 
