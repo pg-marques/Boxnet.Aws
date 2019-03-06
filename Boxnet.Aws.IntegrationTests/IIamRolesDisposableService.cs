@@ -9,5 +9,10 @@ namespace Boxnet.Aws.IntegrationTests
         Task<IEnumerable<IamRole>> ListByFilterAsync(IResourceIdFilter filter);
         Task CreateAsync(IamRole role);
         Task DeleteAsync(IamRole role);
+        Task AttachPoliciesAsync(IamRole role);
+        Task DetachPoliciesIdsAsync(IamRole role);
+        Task AddInlinePoliciesAsync(IamRole role);
+        Task RemoveInlinePoliciesAsync(IamRole role);
+
     }
 }

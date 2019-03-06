@@ -2,7 +2,7 @@
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public interface IResourceId
+    public interface IResourceId : IEntityId
     {
         string Name { get; }
         string Arn { get; }

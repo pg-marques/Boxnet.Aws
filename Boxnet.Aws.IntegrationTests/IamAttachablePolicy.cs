@@ -1,15 +1,15 @@
-﻿namespace Boxnet.Aws.IntegrationTests
+﻿using System;
+
+namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamAttachablePolicy
+    public class IamAttachablePolicy : Entity<IamAttachablePolicyId>, IResource<IamAttachablePolicyId>
     {
-        public IamAttachablePolicyId Id { get; private set; }
-        public string Description { get; }
+        public string Description { get; private set; }
         public IIamPolicyDocument Document { get; }
         public string Path { get; }
 
-        public IamAttachablePolicy(IamAttachablePolicyId id, string description, IIamPolicyDocument document, string path)
+        public IamAttachablePolicy(IamAttachablePolicyId id, string description, IIamPolicyDocument document, string path) : base(id)
         {
-            Id = id;
             Description = description;
             Document = document;
             Path = path;
@@ -18,6 +18,11 @@
         public void SetArn(string arn)
         {
             Id.SetArn(arn);
+        }
+
+        public void ChangeDescription(string description)
+        {
+            Description = description;
         }
     }
 }

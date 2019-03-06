@@ -9,5 +9,7 @@ namespace Boxnet.Aws.IntegrationTests
         Task<IEnumerable<IamUser>> ListByFilterAsync(IResourceIdFilter filter);
         Task CreateAsync(IamUser user);
         Task DeleteAsync(IamUser user);
+        Task AddToGroupsAsync(IamUser user);
+        Task RemoveFromGroupsAsync(IamUser user);
     }
 }

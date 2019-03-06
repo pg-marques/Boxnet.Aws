@@ -23,61 +23,35 @@ namespace Boxnet.Aws.IntegrationTests
         [TestMethod]
         public async Task BasicSnapshotAndRestoreTests()
         {
-            //Snapshot
-            var policies = Enumerable.Empty<IamAttachablePolicy>();
+            //Snapshot            
             var groups = Enumerable.Empty<IamGroup>();
             var filter = new ResourceNameContainsCaseInsensitiveFilter("Morpheus");
-
-            using (var boxnetIamPoliciesService = new IamAttachablePoliciesService(boxnetAwsAccessKeyId, boxnetAwsAccessKey, defaultAwsEndpointRegion))
-                policies = await boxnetIamPoliciesService.ListByFilterAsync(filter);
 
             using (var boxnetIamGroupsService = new IamGroupsService(boxnetAwsAccessKeyId, boxnetAwsAccessKey, defaultAwsEndpointRegion))
                 groups = await boxnetIamGroupsService.ListByFilterAsync(filter);
 
             //Handling
-            var stackPrefix = "SummerProd";
-            var newPolicies = new List<IamAttachablePolicy>();
+            var stackPrefix = "SummerProd";            
             var newGroups = new List<IamGroup>();
-
-            foreach (var policy in policies)
-            {
-                var id = new IamAttachablePolicyId(string.Format("{0}{1}", stackPrefix, policy.Id.Name));
-                id.AddAlias(policy.Id.Name);
-                id.AddAlias(policy.Id.Arn);
-
-                newPolicies.Add(new IamAttachablePolicy(id, policy.Description, policy.Document, policy.Path));
-            }
 
             foreach (var group in groups)
             {
                 var id = new IamGroupId(string.Format("{0}{1}", stackPrefix, group.Id.Name));
                 id.AddAlias(group.Id.Name);
-                id.AddAlias(group.Id.Arn);
-
-                var newGroup = new IamGroup(id, group.Path);
-                foreach (var policy in group.AttachedPolicies)
-                {
-                    var newPolicy = newPolicies.Select(p => p.Id).FirstOrDefault(policyId => policyId.Aliases.Any(alias => alias == policy.Arn));
-                    newGroup.Add(newPolicy);
-                }
-                newGroups.Add(newGroup);
+                id.AddAlias(group.Id.Arn); 
+                
+                newGroups.Add(new IamGroup(id, group.Path));
             }
 
-            //Restore
-            using (var infraAppIamPoliciesService = new IamAttachablePoliciesService(infraAppAccessKeyId, infraAppAccessKey, defaultAwsEndpointRegion))
+            //Restore            
             using (var infraAppIamGroupsService = new IamGroupsService(infraAppAccessKeyId, infraAppAccessKey, defaultAwsEndpointRegion))
             {
-                foreach (var policy in newPolicies)
-                    await infraAppIamPoliciesService.CreateAsync(policy);
-
                 foreach (var group in newGroups)
                     await infraAppIamGroupsService.CreateAsync(group);
 
-                foreach (var group in newGroups)
+                foreach (var group in newGroups)                    
                     await infraAppIamGroupsService.DeleteAsync(group);
-
-                foreach (var policy in newPolicies)
-                    await infraAppIamPoliciesService.DeleteAsync(policy);
+                
             }
         }
 

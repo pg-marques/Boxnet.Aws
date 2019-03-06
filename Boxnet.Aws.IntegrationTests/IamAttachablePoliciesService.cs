@@ -38,7 +38,7 @@ namespace Boxnet.Aws.IntegrationTests
                 var document = await GetDocumentOfPolicyAsync(policyArn);
 
                 policies.Add(new IamAttachablePolicy(
-                    new IamAttachablePolicyId(policyArn, response.Policy.PolicyName),
+                    new IamAttachablePolicyId(response.Policy.PolicyName, policyArn),
                     response.Policy.Description,
                     new IamPolicyUndecodedDocument(document),
                     response.Policy.Path));

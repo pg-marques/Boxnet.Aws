@@ -8,7 +8,7 @@ namespace Boxnet.Aws.IntegrationTests
         Task AddAsync(IamAttachablePolicy policy);
         Task SaveAsync(IamAttachablePolicy policy);
         Task DeleteAsync(IamAttachablePolicy policy);
-        IamAttachablePolicy ByIdAsync(IamAttachablePolicyId id);
-        Task<IEnumerable<IamAttachablePolicy>> ByAsync();
+        Task<IamAttachablePolicy> ByAsync(IamAttachablePolicyId id);
+        Task<IEnumerable<IamAttachablePolicy>> AllAsync();
     }
 }

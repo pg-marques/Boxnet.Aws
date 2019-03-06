@@ -9,5 +9,7 @@ namespace Boxnet.Aws.IntegrationTests
         Task<IEnumerable<IamGroup>> ListByFilterAsync(IResourceIdFilter filter);
         Task CreateAsync(IamGroup group);
         Task DeleteAsync(IamGroup group);
+        Task AttachPoliciesAsync(IamGroup group);
+        Task DetachPoliciesAsync(IamGroup group);
     }
 }

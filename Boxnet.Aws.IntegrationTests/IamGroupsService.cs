@@ -46,17 +46,16 @@ namespace Boxnet.Aws.IntegrationTests
 
         public async Task CreateAsync(IamGroup group)
         {
-            await CreateGroupAsync(group);
-            await AttachPolicies(group);
+            var response = await client.CreateGroupAsync(new CreateGroupRequest()
+            {
+                GroupName = group.Id.Name,
+                Path = group.Path
+            });
+
+            group.SetArn(response.Group.Arn);
         }
 
         public async Task DeleteAsync(IamGroup group)
-        {
-            await DetachPoliciesAsync(group);
-            await DeleteGroupAsync(group);
-        }
-
-        private async Task DeleteGroupAsync(IamGroup group)
         {
             await client.DeleteGroupAsync(new DeleteGroupRequest()
             {
@@ -64,7 +63,7 @@ namespace Boxnet.Aws.IntegrationTests
             });
         }
 
-        private async Task DetachPoliciesAsync(IamGroup group)
+        public async Task DetachPoliciesAsync(IamGroup group)
         {
             foreach (var policy in group.AttachedPolicies)
                 await client.DetachGroupPolicyAsync(new DetachGroupPolicyRequest()
@@ -74,7 +73,7 @@ namespace Boxnet.Aws.IntegrationTests
                 });
         }
 
-        private async Task AttachPolicies(IamGroup group)
+        public async Task AttachPoliciesAsync(IamGroup group)
         {
             foreach (var policy in group.AttachedPolicies)
                 await client.AttachGroupPolicyAsync(new AttachGroupPolicyRequest()
@@ -82,17 +81,6 @@ namespace Boxnet.Aws.IntegrationTests
                     GroupName = group.Id.Name,
                     PolicyArn = policy.Arn
                 });
-        }
-
-        private async Task CreateGroupAsync(IamGroup group)
-        {
-            var response = await client.CreateGroupAsync(new CreateGroupRequest()
-            {
-                GroupName = group.Id.Name,
-                Path = group.Path                
-            });
-
-            group.SetArn(response.Group.Arn);
         }
 
         #region IDisposable Support

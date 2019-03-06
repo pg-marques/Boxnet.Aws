@@ -28,7 +28,7 @@ namespace Boxnet.Aws.IntegrationTests
                 var group = new IamGroup(new IamGroupId(detail.Arn, detail.GroupName), detail.Path);
 
                 foreach (var policy in detail.AttachedManagedPolicies)
-                    group.Add(new IamAttachablePolicyId(policy.PolicyArn, policy.PolicyName));
+                    group.Add(new IamAttachablePolicyId(policy.PolicyName, policy.PolicyArn));
 
                 return group;
             });

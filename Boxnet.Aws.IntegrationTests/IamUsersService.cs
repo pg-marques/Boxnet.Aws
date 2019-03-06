@@ -46,12 +46,6 @@ namespace Boxnet.Aws.IntegrationTests
 
         public async Task CreateAsync(IamUser user)
         {
-            await CreateUserAsync(user);
-            await AddToGroupsAsync(user);
-        }
-
-        private async Task CreateUserAsync(IamUser user)
-        {
             var response = await client.CreateUserAsync(new CreateUserRequest()
             {
                 UserName = user.Id.Name,
@@ -61,7 +55,7 @@ namespace Boxnet.Aws.IntegrationTests
             user.SetArn(response.User.Arn);
         }
 
-        private async Task AddToGroupsAsync(IamUser user)
+        public async Task AddToGroupsAsync(IamUser user)
         {
             foreach (var groupId in user.GroupsIds)
                 await client.AddUserToGroupAsync(new AddUserToGroupRequest()
@@ -73,11 +67,13 @@ namespace Boxnet.Aws.IntegrationTests
 
         public async Task DeleteAsync(IamUser user)
         {
-            await RemoveFromGroupsAsync(user);
-            await DeleteUserAsync(user);
+            var response = await client.DeleteUserAsync(new DeleteUserRequest()
+            {
+                UserName = user.Id.Name
+            });
         }
 
-        private async Task RemoveFromGroupsAsync(IamUser user)
+        public async Task RemoveFromGroupsAsync(IamUser user)
         {
             foreach (var groupId in user.GroupsIds)
                 await client.RemoveUserFromGroupAsync(new RemoveUserFromGroupRequest()
@@ -85,14 +81,6 @@ namespace Boxnet.Aws.IntegrationTests
                     UserName = user.Id.Name,
                     GroupName = groupId.Name
                 });
-        }
-
-        private async Task DeleteUserAsync(IamUser user)
-        {
-            var response = await client.DeleteUserAsync(new DeleteUserRequest()
-            {
-                UserName = user.Id.Name
-            });
         }
 
         #region IDisposable Support

@@ -94,7 +94,7 @@ namespace Boxnet.Aws.IntegrationTests
                 });
 
                 attachedPoliciesIds.AddRange(
-                    response.AttachedPolicies.Select(policy => new IamAttachablePolicyId(policy.PolicyArn, policy.PolicyName)));
+                    response.AttachedPolicies.Select(policy => new IamAttachablePolicyId(policy.PolicyName, policy.PolicyArn)));
 
                 marker = response.Marker;
 
@@ -168,12 +168,19 @@ namespace Boxnet.Aws.IntegrationTests
 
         public async Task CreateAsync(IamRole role)
         {
-            await CreateRoleAsync(role);
-            await AttachPoliciesAsync(role);
-            await AddInlinePoliciesAsync(role);
+            var response = await client.CreateRoleAsync(new CreateRoleRequest()
+            {
+                RoleName = role.Id.Name,
+                Path = role.Path,
+                Description = role.Description,
+                MaxSessionDuration = role.MaxSessionDuration,
+                AssumeRolePolicyDocument = role.AssumeRolePolicyDocument.Value
+            });
+
+            role.SetArn(response.Role.Arn);
         }
 
-        private async Task AddInlinePoliciesAsync(IamRole role)
+        public async Task AddInlinePoliciesAsync(IamRole role)
         {
             foreach (var policy in role.InlinePolicies)
                 await client.PutRolePolicyAsync(new PutRolePolicyRequest()
@@ -184,7 +191,7 @@ namespace Boxnet.Aws.IntegrationTests
                 });
         }
 
-        private async Task AttachPoliciesAsync(IamRole role)
+        public async Task AttachPoliciesAsync(IamRole role)
         {
             foreach (var policy in role.AttachedPoliciesIds)
                 await client.AttachRolePolicyAsync(new AttachRolePolicyRequest()
@@ -194,28 +201,7 @@ namespace Boxnet.Aws.IntegrationTests
                 });
         }
 
-        private async Task CreateRoleAsync(IamRole role)
-        {
-            var response = await client.CreateRoleAsync(new CreateRoleRequest()
-            {
-                RoleName = role.Id.Name,
-                Path = role.Path,
-                Description = role.Description,
-                MaxSessionDuration = role.MaxSessionDuration,
-                AssumeRolePolicyDocument = role.AssumeRolePolicyDocument.Value                
-            });
-
-            role.SetArn(response.Role.Arn);
-        }
-
         public async Task DeleteAsync(IamRole role)
-        {
-            await DetachPoliciesIdsAsync(role);
-            await RemoveInlinePoliciesAsync(role);
-            await DeleteRoleAsync(role);
-        }
-
-        private async Task DeleteRoleAsync(IamRole role)
         {
             await client.DeleteRoleAsync(new DeleteRoleRequest()
             {
@@ -223,7 +209,7 @@ namespace Boxnet.Aws.IntegrationTests
             });
         }
 
-        private async Task RemoveInlinePoliciesAsync(IamRole role)
+        public async Task RemoveInlinePoliciesAsync(IamRole role)
         {
             foreach (var policy in role.InlinePolicies)
                 await client.DeleteRolePolicyAsync(new DeleteRolePolicyRequest()
@@ -233,7 +219,7 @@ namespace Boxnet.Aws.IntegrationTests
                 });
         }
 
-        private async Task DetachPoliciesIdsAsync(IamRole role)
+        public async Task DetachPoliciesIdsAsync(IamRole role)
         {
             foreach (var policy in role.AttachedPoliciesIds)
                 await client.DetachRolePolicyAsync(new DetachRolePolicyRequest()
