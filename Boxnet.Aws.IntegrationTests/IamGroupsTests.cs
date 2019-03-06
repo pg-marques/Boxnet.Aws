@@ -27,8 +27,14 @@ namespace Boxnet.Aws.IntegrationTests
             var groups = Enumerable.Empty<IamGroup>();
             var filter = new ResourceNameContainsCaseInsensitiveFilter("Morpheus");
 
+            var oldRepository = new IamGroupsJsonFileRepository(@"C:\Users\paul.marques\Desktop\InfraApp\SummerProd\Old_IamGroups.json");
+            var newRepository = new IamGroupsJsonFileRepository(@"C:\Users\paul.marques\Desktop\InfraApp\SummerProd\New_IamGroups.json");
+
             using (var boxnetIamGroupsService = new IamGroupsService(boxnetAwsAccessKeyId, boxnetAwsAccessKey, defaultAwsEndpointRegion))
                 groups = await boxnetIamGroupsService.ListByFilterAsync(filter);
+
+            foreach (var group in groups)
+                await oldRepository.AddAsync(group);
 
             //Handling
             var stackPrefix = "SummerProd";            
@@ -43,11 +49,17 @@ namespace Boxnet.Aws.IntegrationTests
                 newGroups.Add(new IamGroup(id, group.Path));
             }
 
+            foreach (var group in newGroups)
+                await newRepository.AddAsync(group);
+
             //Restore            
             using (var infraAppIamGroupsService = new IamGroupsService(infraAppAccessKeyId, infraAppAccessKey, defaultAwsEndpointRegion))
             {
                 foreach (var group in newGroups)
+                {
                     await infraAppIamGroupsService.CreateAsync(group);
+                    await newRepository.SaveAsync(group);
+                }
 
                 foreach (var group in newGroups)                    
                     await infraAppIamGroupsService.DeleteAsync(group);

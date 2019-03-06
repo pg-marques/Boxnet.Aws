@@ -2,17 +2,15 @@
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamGroup
+    public class IamGroup : Entity<IamGroupId>, IResource<IamGroupId>
     {
         private readonly IList<IamAttachablePolicyId> managedPolicies = new List<IamAttachablePolicyId>();
 
         public string Path { get; }
-        public IamGroupId Id { get; private set; }
         public IEnumerable<IamAttachablePolicyId> AttachedPolicies { get { return managedPolicies; } }
 
-        public IamGroup(IamGroupId id, string path)
+        public IamGroup(IamGroupId id, string path) : base(id)
         {
-            Id = id;
             Path = path;
         }
 
