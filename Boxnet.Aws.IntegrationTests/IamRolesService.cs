@@ -73,7 +73,7 @@ namespace Boxnet.Aws.IntegrationTests
             });
 
             return new IamRole(
-                new IamRoleId(roleDetails.Arn, roleDetails.RoleName),
+                new IamRoleId(roleDetails.RoleName, roleDetails.Arn),
                 roleDetails.Path,
                 response.Role.Description,
                 response.Role.MaxSessionDuration,

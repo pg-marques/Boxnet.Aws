@@ -1,53 +1,56 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamAttachablePolicyJsonConverter : JsonConverter
+    public class IamRoleJsonConverter : JsonConverter
     {
-        private const string DescriptionField = "description";
         private const string PathField = "path";
+        private const string DescriptionField = "description";
         private const string IdField = "id";
         private const string AliasesField = "aliases";
         private const string GuidField = "guid";
         private const string NameField = "name";
         private const string ArnField = "arn";
-        private const string DocumentField = "document";
+        private const string MaxSessionDurationField = "maxSessionDuration";
+        private const string DocumentField = "assumeRolePolicyDocument";
         private const string ValueField = "value";
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(IamAttachablePolicy);
+            return objectType == typeof(IamRole);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             var @object = new JObjectAdapter(JObject.Load(reader));
 
-            return new IamAttachablePolicy(
+            return new IamRole(
                 ExtractIdFrom(@object),
+                @object[PathField].AsStringOrEmpty(),
                 @object[DescriptionField].AsStringOrEmpty(),
-                ExtractDocumentFrom(@object),
-                @object[PathField].AsStringOrEmpty());
+                @object[MaxSessionDurationField].As<int>(),
+                ExtractDocumentFrom(@object));
         }
 
-        private IamAttachablePolicyId ExtractIdFrom(JObjectAdapter @object)
+        private IamRoleId ExtractIdFrom(JObjectAdapter @object)
         {
             var token = @object[IdField];
 
             var aliases = token[AliasesField].AsEnumerableStringOrEmpty();
-            var id = new IamAttachablePolicyId(
-                new Guid(token[GuidField].AsStringOrEmpty()), 
-                token[NameField].AsStringOrEmpty(), 
-                token[ArnField].AsStringOrEmpty());            
+            var id = new IamRoleId(
+                new Guid(token[GuidField].AsStringOrEmpty()),
+                token[NameField].AsStringOrEmpty(),
+                token[ArnField].AsStringOrEmpty());
 
             foreach (var alias in aliases)
                 id.AddAlias(alias);
 
             return id;
         }
-
         private IIamPolicyDocument ExtractDocumentFrom(JObjectAdapter @object)
         {
             var token = @object[DocumentField];

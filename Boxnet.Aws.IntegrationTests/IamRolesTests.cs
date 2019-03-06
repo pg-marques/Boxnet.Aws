@@ -21,9 +21,15 @@ namespace Boxnet.Aws.IntegrationTests
             //Snapshot
             var roles = Enumerable.Empty<IamRole>();
             var filter = new ResourceNameContainsCaseInsensitiveFilter("Morpheus");
-            
+
+            var oldRepository = new IamRolesJsonFileRepository(@"C:\Users\paul.marques\Desktop\InfraApp\SummerProd\Old_IamRoles.json");
+            var newRepository = new IamRolesJsonFileRepository(@"C:\Users\paul.marques\Desktop\InfraApp\SummerProd\New_IamRoles.json");
+
             using (var boxnetIamRolesService = new IamRolesService(boxnetAwsAccessKeyId, boxnetAwsAccessKey, defaultAwsEndpointRegion))
                 roles = await boxnetIamRolesService.ListByFilterAsync(filter);
+
+            foreach (var role in roles)
+                await oldRepository.AddAsync(role);
 
             //Handling
             var stackPrefix = "SummerProd";            
@@ -44,11 +50,17 @@ namespace Boxnet.Aws.IntegrationTests
                         role.AssumeRolePolicyDocument));
             }
 
+            foreach (var role in newRoles)
+                await newRepository.AddAsync(role);
+
             //Restore            
             using (var infraAppIamRolesService = new IamRolesService(infraAppAccessKeyId, infraAppAccessKey, defaultAwsEndpointRegion))
             {
                 foreach (var role in newRoles)
+                {
                     await infraAppIamRolesService.CreateAsync(role);
+                    await newRepository.SaveAsync(role);
+                }
 
                 foreach (var role in newRoles)
                     await infraAppIamRolesService.DeleteAsync(role);
