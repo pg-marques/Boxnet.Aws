@@ -35,11 +35,17 @@ namespace Boxnet.Aws.IntegrationTests
             var newPolicies = new List<IamAttachablePolicy>();
             foreach (var policy in policies)
             {
-                var id = new IamAttachablePolicyId(Guid.NewGuid(), string.Format("{0}_{1}", stackPrefix, policy.Id.Name));
-                id.AddAlias(policy.Id.Name);
-                id.AddAlias(policy.Id.Arn);
+                var resourceId = new IamAttachablePolicyResourceId(string.Format("{0}_{1}", stackPrefix, policy.ResourceId.Name));
+                resourceId.AddAlias(policy.ResourceId.Name);
+                resourceId.AddAlias(policy.ResourceId.Arn);
 
-                newPolicies.Add(new IamAttachablePolicy(id, policy.Description, policy.Document, policy.Path));
+                newPolicies.Add(
+                    new IamAttachablePolicy(
+                        new IamAttachablePolicyId(),
+                        resourceId, 
+                        policy.Description, 
+                        policy.Document, 
+                        policy.Path));
             }
 
             foreach (var policy in newPolicies)

@@ -48,7 +48,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             var response = await client.CreateGroupAsync(new CreateGroupRequest()
             {
-                GroupName = group.Id.Name,
+                GroupName = group.ResourceId.Name,
                 Path = group.Path
             });
 
@@ -59,7 +59,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             await client.DeleteGroupAsync(new DeleteGroupRequest()
             {
-                GroupName = group.Id.Name
+                GroupName = group.ResourceId.Name
             });
         }
 
@@ -69,7 +69,7 @@ namespace Boxnet.Aws.IntegrationTests
                 await client.DetachGroupPolicyAsync(new DetachGroupPolicyRequest()
                 {
                     PolicyArn = policy.Arn,
-                    GroupName = group.Id.Name
+                    GroupName = group.ResourceId.Name
                 });
         }
 
@@ -78,7 +78,7 @@ namespace Boxnet.Aws.IntegrationTests
             foreach (var policy in group.AttachedPolicies)
                 await client.AttachGroupPolicyAsync(new AttachGroupPolicyRequest()
                 {
-                    GroupName = group.Id.Name,
+                    GroupName = group.ResourceId.Name,
                     PolicyArn = policy.Arn
                 });
         }

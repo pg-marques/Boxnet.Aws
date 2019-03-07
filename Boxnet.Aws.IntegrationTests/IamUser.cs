@@ -1,28 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamUser : Entity<IamUserId>, IResource<IamUserId>
+    public class IamUser : ResourceEntity<IamUserId,IamUserResourceId>
     {
-        private readonly IList<IamGroupId> groupIds = new List<IamGroupId>();
+        private readonly IList<IamGroupResourceId> groupIds = new List<IamGroupResourceId>();
         public string Path { get; }
-        public IEnumerable<IamGroupId> GroupsIds { get { return groupIds; } }
+        public IEnumerable<IamGroupResourceId> GroupsIds { get { return groupIds; } }
 
-        public IamUser(IamUserId id, string path):base(id)
+        public IamUser(IamUserId id, IamUserResourceId resourceId, string path):base(id, resourceId)
         {
             Path = path;
         }
 
-        public void AddGroupId(IamGroupId groupId)
+        public void AddGroupId(IamGroupResourceId groupId)
         {
             groupIds.Add(groupId);
-        }
-
-        public void SetArn(string arn)
-        {
-            Id.SetArn(arn);
         }
     }
 }

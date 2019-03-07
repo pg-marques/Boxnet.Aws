@@ -2,10 +2,10 @@
 {
     public class IamInlinePolicy
     {
-        public IamInlinePolicyId Id { get; }
+        public IamInlinePolicyResourceId Id { get; }
         public IIamPolicyDocument Document { get; }
 
-        public IamInlinePolicy(IamInlinePolicyId id, IIamPolicyDocument document)
+        public IamInlinePolicy(IamInlinePolicyResourceId id, IIamPolicyDocument document)
         {
             Id = id;
             Document = document;

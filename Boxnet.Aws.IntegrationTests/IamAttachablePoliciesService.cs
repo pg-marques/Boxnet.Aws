@@ -38,7 +38,8 @@ namespace Boxnet.Aws.IntegrationTests
                 var document = await GetDocumentOfPolicyAsync(policyArn);
 
                 policies.Add(new IamAttachablePolicy(
-                    new IamAttachablePolicyId(response.Policy.PolicyName, policyArn),
+                    new IamAttachablePolicyId(),
+                    new IamAttachablePolicyResourceId(response.Policy.PolicyName, policyArn),
                     response.Policy.Description,
                     new IamPolicyUndecodedDocument(document),
                     response.Policy.Path));
@@ -109,7 +110,7 @@ namespace Boxnet.Aws.IntegrationTests
                 Description = policy.Description,
                 Path = policy.Path,
                 PolicyDocument = policy.Document.Value,
-                PolicyName = policy.Id.Name                
+                PolicyName = policy.ResourceId.Name                
             });
 
             policy.SetArn(response.Policy.Arn);
@@ -119,7 +120,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             await client.DeletePolicyAsync(new DeletePolicyRequest()
             {
-                PolicyArn = policy.Id.Arn
+                PolicyArn = policy.ResourceId.Arn
             });
         }
 

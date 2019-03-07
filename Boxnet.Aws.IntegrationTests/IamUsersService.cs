@@ -48,7 +48,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             var response = await client.CreateUserAsync(new CreateUserRequest()
             {
-                UserName = user.Id.Name,
+                UserName = user.ResourceId.Name,
                 Path = user.Path
             });
 
@@ -60,7 +60,7 @@ namespace Boxnet.Aws.IntegrationTests
             foreach (var groupId in user.GroupsIds)
                 await client.AddUserToGroupAsync(new AddUserToGroupRequest()
                 {
-                    UserName = user.Id.Name,
+                    UserName = user.ResourceId.Name,
                     GroupName = groupId.Name
                 });
         }
@@ -69,7 +69,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             var response = await client.DeleteUserAsync(new DeleteUserRequest()
             {
-                UserName = user.Id.Name
+                UserName = user.ResourceId.Name
             });
         }
 
@@ -78,7 +78,7 @@ namespace Boxnet.Aws.IntegrationTests
             foreach (var groupId in user.GroupsIds)
                 await client.RemoveUserFromGroupAsync(new RemoveUserFromGroupRequest()
                 {
-                    UserName = user.Id.Name,
+                    UserName = user.ResourceId.Name,
                     GroupName = groupId.Name
                 });
         }

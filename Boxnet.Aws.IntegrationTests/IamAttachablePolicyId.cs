@@ -2,14 +2,10 @@
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamAttachablePolicyId : ResourceId<IamAttachablePolicyId>
+    public class IamAttachablePolicyId : GuidEntityId
     {
-        public IamAttachablePolicyId(string name) : base(name) { }
+        public IamAttachablePolicyId() : base() { }
 
-        public IamAttachablePolicyId(string name, string arn) : base(name, arn) { }
-
-        public IamAttachablePolicyId(Guid guid, string name) : base(guid, name) { }
-
-        public IamAttachablePolicyId(Guid guid, string name, string arn) : base(guid, name, arn) { }
+        public IamAttachablePolicyId(Guid value) : base(value) { }
     }
 }

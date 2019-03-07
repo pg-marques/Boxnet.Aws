@@ -11,8 +11,9 @@ namespace Boxnet.Aws.IntegrationTests
         private const string PathField = "path";
         private const string DescriptionField = "description";
         private const string IdField = "id";
+        private const string ResourceIdField = "resourceId";
         private const string AliasesField = "aliases";
-        private const string GuidField = "guid";
+        private const string GuidField = "value";
         private const string NameField = "name";
         private const string ArnField = "arn";
         private const string MaxSessionDurationField = "maxSessionDuration";
@@ -30,6 +31,7 @@ namespace Boxnet.Aws.IntegrationTests
 
             return new IamRole(
                 ExtractIdFrom(@object),
+                ExtractResourceIdFrom(@object),
                 @object[PathField].AsStringOrEmpty(),
                 @object[DescriptionField].AsStringOrEmpty(),
                 @object[MaxSessionDurationField].As<int>(),
@@ -39,10 +41,15 @@ namespace Boxnet.Aws.IntegrationTests
         private IamRoleId ExtractIdFrom(JObjectAdapter @object)
         {
             var token = @object[IdField];
+            return new IamRoleId(new Guid(token[GuidField].AsStringOrEmpty()));
+        }
+
+        private IamRoleResourceId ExtractResourceIdFrom(JObjectAdapter @object)
+        {
+            var token = @object[ResourceIdField];
 
             var aliases = token[AliasesField].AsEnumerableStringOrEmpty();
-            var id = new IamRoleId(
-                new Guid(token[GuidField].AsStringOrEmpty()),
+            var id = new IamRoleResourceId(
                 token[NameField].AsStringOrEmpty(),
                 token[ArnField].AsStringOrEmpty());
 

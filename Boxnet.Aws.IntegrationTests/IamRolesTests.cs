@@ -37,17 +37,11 @@ namespace Boxnet.Aws.IntegrationTests
 
             foreach (var role in roles)
             {
-                var id = new IamRoleId(string.Format("{0}_{1}", stackPrefix, role.Id.Name));
-                id.AddAlias(role.Id.Name);
-                id.AddAlias(role.Id.Arn);
+                var resourceId = new IamRoleResourceId(string.Format("{0}_{1}", stackPrefix, role.ResourceId.Name));
+                resourceId.AddAlias(role.ResourceId.Name);
+                resourceId.AddAlias(role.ResourceId.Arn);
 
-                newRoles.Add(
-                    new IamRole(
-                        id, 
-                        role.Path, 
-                        role.Description, 
-                        role.MaxSessionDuration, 
-                        role.AssumeRolePolicyDocument));
+                newRoles.Add(new IamRole(new IamRoleId(), resourceId, role.Path, role.Description, role.MaxSessionDuration, role.AssumeRolePolicyDocument));
             }
 
             foreach (var role in newRoles)

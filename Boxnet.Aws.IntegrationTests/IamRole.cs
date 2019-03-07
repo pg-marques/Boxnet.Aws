@@ -2,9 +2,9 @@
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamRole : Entity<IamRoleId>, IResource<IamRoleId>
+    public class IamRole : ResourceEntity<IamRoleId,IamRoleResourceId>
     {
-        private readonly IList<IamAttachablePolicyId> attachedPoliciesIds = new List<IamAttachablePolicyId>();
+        private readonly IList<IamAttachablePolicyResourceId> attachedPoliciesIds = new List<IamAttachablePolicyResourceId>();
         private readonly IList<IamInlinePolicy> inlinePolicies = new List<IamInlinePolicy>();
 
         public string Path { get; }
@@ -12,18 +12,18 @@ namespace Boxnet.Aws.IntegrationTests
         public int MaxSessionDuration { get; }
         public IIamPolicyDocument AssumeRolePolicyDocument { get; }
 
-        public IEnumerable<IamAttachablePolicyId> AttachedPoliciesIds { get { return attachedPoliciesIds; } }
+        public IEnumerable<IamAttachablePolicyResourceId> AttachedPoliciesIds { get { return attachedPoliciesIds; } }
         public IEnumerable<IamInlinePolicy> InlinePolicies { get { return inlinePolicies; } }
 
-        public IamRole(IamRoleId id, string path, string description, int maxSessionDuration, IIamPolicyDocument assumeRolePolicyDocument) : base(id)
-        {
+        public IamRole(IamRoleId id,  IamRoleResourceId resourceId,  string path,  string description,  int maxSessionDuration,  IIamPolicyDocument assumeRolePolicyDocument) : base(id, resourceId)
+        {            
             Path = path;
             Description = description;
             MaxSessionDuration = maxSessionDuration;
             AssumeRolePolicyDocument = assumeRolePolicyDocument;
         }
 
-        public void AddAttachedPolicyId(IamAttachablePolicyId policyId)
+        public void AddAttachedPolicyId(IamAttachablePolicyResourceId policyId)
         {
             attachedPoliciesIds.Add(policyId);
         }
@@ -31,11 +31,6 @@ namespace Boxnet.Aws.IntegrationTests
         public void AddInlinePolicy(IamInlinePolicy policy)
         {
             inlinePolicies.Add(policy);
-        }
-
-        public void SetArn(string arn)
-        {
-            Id.SetArn(arn);
         }
     }
 }

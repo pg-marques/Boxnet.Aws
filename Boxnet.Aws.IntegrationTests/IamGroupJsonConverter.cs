@@ -8,8 +8,9 @@ namespace Boxnet.Aws.IntegrationTests
     {        
         private const string PathField = "path";
         private const string IdField = "id";
+        private const string ResourceIdField = "resourceId";
         private const string AliasesField = "aliases";
-        private const string GuidField = "guid";
+        private const string GuidField = "value";
         private const string NameField = "name";
         private const string ArnField = "arn";     
 
@@ -22,16 +23,24 @@ namespace Boxnet.Aws.IntegrationTests
         {
             var @object = new JObjectAdapter(JObject.Load(reader));
 
-            return new IamGroup(ExtractIdFrom(@object), @object[PathField].AsStringOrEmpty());
+            return new IamGroup(
+                ExtractIdFrom(@object), 
+                ExtractResourceIdFrom(@object), 
+                @object[PathField].AsStringOrEmpty());
         }
 
         private IamGroupId ExtractIdFrom(JObjectAdapter @object)
         {
             var token = @object[IdField];
+            return new IamGroupId(new Guid(token[GuidField].AsStringOrEmpty()));
+        }
+
+        private IamGroupResourceId ExtractResourceIdFrom(JObjectAdapter @object)
+        {
+            var token = @object[ResourceIdField];
 
             var aliases = token[AliasesField].AsEnumerableStringOrEmpty();
-            var id = new IamGroupId(
-                new Guid(token[GuidField].AsStringOrEmpty()),
+            var id = new IamGroupResourceId(
                 token[NameField].AsStringOrEmpty(),
                 token[ArnField].AsStringOrEmpty());
 

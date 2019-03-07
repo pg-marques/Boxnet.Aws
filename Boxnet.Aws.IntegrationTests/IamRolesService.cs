@@ -73,16 +73,17 @@ namespace Boxnet.Aws.IntegrationTests
             });
 
             return new IamRole(
-                new IamRoleId(roleDetails.RoleName, roleDetails.Arn),
+                new IamRoleId(),
+                new IamRoleResourceId(roleDetails.RoleName, roleDetails.Arn),
                 roleDetails.Path,
                 response.Role.Description,
                 response.Role.MaxSessionDuration,
                 new IamPolicyUndecodedDocument(roleDetails.AssumeRolePolicyDocument));
         }
 
-        private async Task<IEnumerable<IamAttachablePolicyId>> GetAttachablePoliciesIdsAsync(IamRole role)
+        private async Task<IEnumerable<IamAttachablePolicyResourceId>> GetAttachablePoliciesIdsAsync(IamRole role)
         {
-            var attachedPoliciesIds = new List<IamAttachablePolicyId>();
+            var attachedPoliciesIds = new List<IamAttachablePolicyResourceId>();
 
             string marker = null;
             do
@@ -90,11 +91,11 @@ namespace Boxnet.Aws.IntegrationTests
                 var response = await client.ListAttachedRolePoliciesAsync(new ListAttachedRolePoliciesRequest()
                 {
                     Marker = marker,
-                    RoleName = role.Id.Name
+                    RoleName = role.ResourceId.Name
                 });
 
                 attachedPoliciesIds.AddRange(
-                    response.AttachedPolicies.Select(policy => new IamAttachablePolicyId(policy.PolicyName, policy.PolicyArn)));
+                    response.AttachedPolicies.Select(policy => new IamAttachablePolicyResourceId(policy.PolicyName, policy.PolicyArn)));
 
                 marker = response.Marker;
 
@@ -113,11 +114,11 @@ namespace Boxnet.Aws.IntegrationTests
                 var response = await client.GetRolePolicyAsync(new GetRolePolicyRequest()
                 {
                     PolicyName = policy,
-                    RoleName = role.Id.Name
+                    RoleName = role.ResourceId.Name
                 });
 
                 inlinePolicies.Add(new IamInlinePolicy(
-                    new IamInlinePolicyId(policy),
+                    new IamInlinePolicyResourceId(policy),
                     new IamPolicyUndecodedDocument(response.PolicyDocument)));
             }
 
@@ -134,7 +135,7 @@ namespace Boxnet.Aws.IntegrationTests
                 var response = await client.ListRolePoliciesAsync(new ListRolePoliciesRequest()
                 {
                     Marker = marker,
-                    RoleName = role.Id.Name
+                    RoleName = role.ResourceId.Name
                 });
                 
                 inlinePoliciesNames.AddRange(response.PolicyNames);
@@ -170,7 +171,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             var response = await client.CreateRoleAsync(new CreateRoleRequest()
             {
-                RoleName = role.Id.Name,
+                RoleName = role.ResourceId.Name,
                 Path = role.Path,
                 Description = role.Description,
                 MaxSessionDuration = role.MaxSessionDuration,
@@ -185,7 +186,7 @@ namespace Boxnet.Aws.IntegrationTests
             foreach (var policy in role.InlinePolicies)
                 await client.PutRolePolicyAsync(new PutRolePolicyRequest()
                 {
-                    RoleName = role.Id.Name,
+                    RoleName = role.ResourceId.Name,
                     PolicyName = policy.Id.Name,
                     PolicyDocument = policy.Document.Value
                 });
@@ -196,7 +197,7 @@ namespace Boxnet.Aws.IntegrationTests
             foreach (var policy in role.AttachedPoliciesIds)
                 await client.AttachRolePolicyAsync(new AttachRolePolicyRequest()
                 {
-                    RoleName = role.Id.Name,
+                    RoleName = role.ResourceId.Name,
                     PolicyArn = policy.Arn
                 });
         }
@@ -205,7 +206,7 @@ namespace Boxnet.Aws.IntegrationTests
         {
             await client.DeleteRoleAsync(new DeleteRoleRequest()
             {
-                RoleName = role.Id.Name
+                RoleName = role.ResourceId.Name
             });
         }
 
@@ -215,7 +216,7 @@ namespace Boxnet.Aws.IntegrationTests
                 await client.DeleteRolePolicyAsync(new DeleteRolePolicyRequest()
                 {
                     PolicyName = policy.Id.Name,
-                    RoleName = role.Id.Name
+                    RoleName = role.ResourceId.Name
                 });
         }
 
@@ -225,7 +226,7 @@ namespace Boxnet.Aws.IntegrationTests
                 await client.DetachRolePolicyAsync(new DetachRolePolicyRequest()
                 {
                     PolicyArn = policy.Arn,
-                    RoleName = role.Id.Name
+                    RoleName = role.ResourceId.Name
                 });
         }
 

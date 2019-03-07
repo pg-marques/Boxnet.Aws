@@ -16,7 +16,7 @@ namespace Boxnet.Aws.IntegrationTests
 
         public RolesDetails FilterBy(IResourceIdFilter filter)
         {
-            return new RolesDetails(details.Where(role => filter.IsSatisfiedBy(new IamRoleId(role.RoleName))));
+            return new RolesDetails(details.Where(role => filter.IsSatisfiedBy(new IamRoleResourceId(role.RoleName))));
         }
 
         public IEnumerator<RoleDetail> GetEnumerator()

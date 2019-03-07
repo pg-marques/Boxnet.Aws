@@ -18,17 +18,17 @@ namespace Boxnet.Aws.IntegrationTests
 
         public GroupsDetails FilterBy(IResourceIdFilter filter)
         {
-            return new GroupsDetails(details.Where(group => filter.IsSatisfiedBy(new IamGroupId(group.GroupName))));
+            return new GroupsDetails(details.Where(group => filter.IsSatisfiedBy(new IamGroupResourceId(group.GroupName))));
         }
 
         public IEnumerable<IamGroup> ToIamGroupsCollection()
         {
             return details.Select(detail =>
             {
-                var group = new IamGroup(new IamGroupId(detail.GroupName, detail.Arn), detail.Path);
+                var group = new IamGroup(new IamGroupId(), new IamGroupResourceId(detail.GroupName, detail.Arn), detail.Path);
 
                 foreach (var policy in detail.AttachedManagedPolicies)
-                    group.Add(new IamAttachablePolicyId(policy.PolicyName, policy.PolicyArn));
+                    group.Add(new IamAttachablePolicyResourceId(policy.PolicyName, policy.PolicyArn));
 
                 return group;
             });

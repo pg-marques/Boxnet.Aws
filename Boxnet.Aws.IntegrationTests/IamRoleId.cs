@@ -2,14 +2,10 @@
 
 namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamRoleId : ResourceId<IamRoleId>
+    public class IamRoleId : GuidEntityId
     {
-        public IamRoleId(string name) : base(name) { }
+        public IamRoleId() : base() { }
 
-        public IamRoleId(string name, string arn) : base(name, arn) { }
-
-        public IamRoleId(Guid guid, string name) : base(guid, name) { }
-
-        public IamRoleId(Guid guid, string name, string arn) : base(guid, name, arn) { }
+        public IamRoleId(Guid value) : base(value) { }        
     }
 }

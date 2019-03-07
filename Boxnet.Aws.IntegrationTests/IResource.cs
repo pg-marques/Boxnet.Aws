@@ -6,6 +6,6 @@ namespace Boxnet.Aws.IntegrationTests
 {
     public interface IResource<TResourceId> where TResourceId : IResourceId
     {
-        TResourceId Id { get; }
+        TResourceId ResourceId { get; }
     }
 }

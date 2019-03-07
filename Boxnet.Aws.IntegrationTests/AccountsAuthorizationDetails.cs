@@ -34,16 +34,16 @@ namespace Boxnet.Aws.IntegrationTests
                 var policiesArns = new List<string>();
                 foreach (var response in responses)
                 {
-                    foreach (var policy in response.Policies.Where(policy => filter.IsSatisfiedBy(new IamAttachablePolicyId(policy.PolicyName))))
+                    foreach (var policy in response.Policies.Where(policy => filter.IsSatisfiedBy(new IamAttachablePolicyResourceId(policy.PolicyName))))
                         policiesArns.Add(policy.Arn);
 
-                    foreach (var policy in response.UserDetailList.Where(user => filter.IsSatisfiedBy(new IamUserId(user.UserName))).SelectMany(user => user.AttachedManagedPolicies))
+                    foreach (var policy in response.UserDetailList.Where(user => filter.IsSatisfiedBy(new IamUserResourceId(user.UserName))).SelectMany(user => user.AttachedManagedPolicies))
                         policiesArns.Add(policy.PolicyArn);
 
-                    foreach (var policy in response.GroupDetailList.Where(group => filter.IsSatisfiedBy(new IamGroupId(group.GroupName))).SelectMany(group => group.AttachedManagedPolicies))
+                    foreach (var policy in response.GroupDetailList.Where(group => filter.IsSatisfiedBy(new IamGroupResourceId(group.GroupName))).SelectMany(group => group.AttachedManagedPolicies))
                         policiesArns.Add(policy.PolicyArn);
 
-                    foreach (var policy in response.RoleDetailList.Where(role => filter.IsSatisfiedBy(new IamRoleId(role.RoleName))).SelectMany(role => role.AttachedManagedPolicies))
+                    foreach (var policy in response.RoleDetailList.Where(role => filter.IsSatisfiedBy(new IamRoleResourceId(role.RoleName))).SelectMany(role => role.AttachedManagedPolicies))
                         policiesArns.Add(policy.PolicyArn);
                 }
 

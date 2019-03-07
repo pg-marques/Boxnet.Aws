@@ -1,10 +1,10 @@
 ﻿namespace Boxnet.Aws.IntegrationTests
 {
-    public class IamInlinePolicyId
+    public class IamInlinePolicyResourceId
     {
         public string Name { get; }
 
-        public IamInlinePolicyId(string name)
+        public IamInlinePolicyResourceId(string name)
         {
             Name = name;
         }

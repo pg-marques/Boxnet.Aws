@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Boxnet.Aws.IntegrationTests
+﻿namespace Boxnet.Aws.IntegrationTests
 {
-    public abstract class Entity<TEntityId> where TEntityId : IEntityId
+    public abstract class Entity<TEntityId>
+        where TEntityId : IEntityId
     {
         public TEntityId Id { get; }
 

@@ -9,8 +9,9 @@ namespace Boxnet.Aws.IntegrationTests
         private const string DescriptionField = "description";
         private const string PathField = "path";
         private const string IdField = "id";
+        private const string ResourceIdField = "resourceId";
         private const string AliasesField = "aliases";
-        private const string GuidField = "guid";
+        private const string GuidField = "value";
         private const string NameField = "name";
         private const string ArnField = "arn";
         private const string DocumentField = "document";
@@ -27,6 +28,7 @@ namespace Boxnet.Aws.IntegrationTests
 
             return new IamAttachablePolicy(
                 ExtractIdFrom(@object),
+                ExtractResourceIdFrom(@object),
                 @object[DescriptionField].AsStringOrEmpty(),
                 ExtractDocumentFrom(@object),
                 @object[PathField].AsStringOrEmpty());
@@ -35,10 +37,15 @@ namespace Boxnet.Aws.IntegrationTests
         private IamAttachablePolicyId ExtractIdFrom(JObjectAdapter @object)
         {
             var token = @object[IdField];
+            return new IamAttachablePolicyId(new Guid(token[GuidField].AsStringOrEmpty()));
+        }
+
+        private IamAttachablePolicyResourceId ExtractResourceIdFrom(JObjectAdapter @object)
+        {
+            var token = @object[ResourceIdField];
 
             var aliases = token[AliasesField].AsEnumerableStringOrEmpty();
-            var id = new IamAttachablePolicyId(
-                new Guid(token[GuidField].AsStringOrEmpty()), 
+            var id = new IamAttachablePolicyResourceId(
                 token[NameField].AsStringOrEmpty(), 
                 token[ArnField].AsStringOrEmpty());            
 

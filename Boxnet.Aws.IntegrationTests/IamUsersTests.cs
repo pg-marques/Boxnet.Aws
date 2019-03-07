@@ -42,11 +42,11 @@ namespace Boxnet.Aws.IntegrationTests
             
             foreach (var user in users)
             {
-                var id = new IamUserId(string.Format("{0}.{1}", stackPrefix, user.Id.Name));
-                id.AddAlias(user.Id.Name);
-                id.AddAlias(user.Id.Arn);
+                var resourceId = new IamUserResourceId(string.Format("{0}.{1}", stackPrefix, user.ResourceId.Name));
+                resourceId.AddAlias(user.ResourceId.Name);
+                resourceId.AddAlias(user.ResourceId.Arn);
 
-                newUsers.Add(new IamUser(id, user.Path));
+                newUsers.Add(new IamUser(new IamUserId(), resourceId, user.Path));
             }
 
             foreach (var user in newUsers)
