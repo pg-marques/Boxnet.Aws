@@ -8,4 +8,14 @@
     <PackageReference Include="AWSSDK.IdentityManagement" Version="3.3.9.21" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Boxnet.Aws.Model\Boxnet.Aws.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\newtonsoft.json\9.0.1\lib\netstandard1.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

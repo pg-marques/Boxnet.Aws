@@ -1,12 +1,10 @@
-﻿using Amazon;
-using Amazon.IdentityManagement;
-using Amazon.IdentityManagement.Model;
-using Amazon.Runtime;
+﻿using Boxnet.Aws.Infra.Aws.Iam.Users;
+using Boxnet.Aws.Model.Aws.Iam;
+using Boxnet.Aws.Model.Aws.Iam.Users;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Boxnet.Aws.IntegrationTests

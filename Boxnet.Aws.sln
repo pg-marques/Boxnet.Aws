@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Tests", "2 - Tests", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Infra", "Boxnet.Aws.Infra\Boxnet.Aws.Infra.csproj", "{70523E67-0E06-44B8-9A57-8BC244B7E90B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Model", "Boxnet.Aws.Model\Boxnet.Aws.Model.csproj", "{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{70523E67-0E06-44B8-9A57-8BC244B7E90B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70523E67-0E06-44B8-9A57-8BC244B7E90B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70523E67-0E06-44B8-9A57-8BC244B7E90B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +38,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB} = {8D3E039C-C1B2-453A-8DA1-22A00B3D85AC}
 		{70523E67-0E06-44B8-9A57-8BC244B7E90B} = {FDB52034-1986-466E-845C-5EF6EBBB56D8}
+		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6} = {FDB52034-1986-466E-845C-5EF6EBBB56D8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {980E4E98-9BD9-458E-8537-6EA4B8E53A70}

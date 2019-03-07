@@ -1,4 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Boxnet.Aws.Infra.Aws.Iam.Policies;
+using Boxnet.Aws.Model.Aws.Iam;
+using Boxnet.Aws.Model.Aws.Iam.Policies;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
