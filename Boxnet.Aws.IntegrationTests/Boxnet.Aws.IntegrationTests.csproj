@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Boxnet.Aws.Lib\Boxnet.Aws.Lib.csproj" />
+    <ProjectReference Include="..\Boxnet.Aws.Infra\Boxnet.Aws.Infra.csproj" />
   </ItemGroup>
 
 </Project>

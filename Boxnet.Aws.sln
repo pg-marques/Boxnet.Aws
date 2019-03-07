@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Lib", "Boxnet.Aws.Lib\Boxnet.Aws.Lib.csproj", "{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.IntegrationTests", "Boxnet.Aws.IntegrationTests\Boxnet.Aws.IntegrationTests.csproj", "{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Boxnet.Aws.IntegrationTests", "Boxnet.Aws.IntegrationTests\Boxnet.Aws.IntegrationTests.csproj", "{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Lib", "1 - Lib", "{FDB52034-1986-466E-845C-5EF6EBBB56D8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Tests", "2 - Tests", "{8D3E039C-C1B2-453A-8DA1-22A00B3D85AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Infra", "Boxnet.Aws.Infra\Boxnet.Aws.Infra.csproj", "{70523E67-0E06-44B8-9A57-8BC244B7E90B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,21 +17,21 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70523E67-0E06-44B8-9A57-8BC244B7E90B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70523E67-0E06-44B8-9A57-8BC244B7E90B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70523E67-0E06-44B8-9A57-8BC244B7E90B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70523E67-0E06-44B8-9A57-8BC244B7E90B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{71C89F3B-EFB9-44A1-BA8E-CBDA5ACDE7C7} = {FDB52034-1986-466E-845C-5EF6EBBB56D8}
 		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB} = {8D3E039C-C1B2-453A-8DA1-22A00B3D85AC}
+		{70523E67-0E06-44B8-9A57-8BC244B7E90B} = {FDB52034-1986-466E-845C-5EF6EBBB56D8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {980E4E98-9BD9-458E-8537-6EA4B8E53A70}
