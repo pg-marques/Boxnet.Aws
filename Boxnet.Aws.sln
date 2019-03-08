@@ -9,9 +9,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Lib", "1 - Lib", "{FDB5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Tests", "2 - Tests", "{8D3E039C-C1B2-453A-8DA1-22A00B3D85AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Infra", "Boxnet.Aws.Infra\Boxnet.Aws.Infra.csproj", "{70523E67-0E06-44B8-9A57-8BC244B7E90B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Boxnet.Aws.Infra", "Boxnet.Aws.Infra\Boxnet.Aws.Infra.csproj", "{70523E67-0E06-44B8-9A57-8BC244B7E90B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Model", "Boxnet.Aws.Model\Boxnet.Aws.Model.csproj", "{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Boxnet.Aws.Model", "Boxnet.Aws.Model\Boxnet.Aws.Model.csproj", "{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MVP", "MVP", "{B9E299FE-0B24-41CB-9576-D716860644CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Mvp", "Boxnet.Aws.Mvp\Boxnet.Aws.Mvp.csproj", "{FA1956FD-1E27-4A74-B831-1FBA14A7222F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Mvp.IntegrationTests", "Boxnet.Aws.Mvp.IntegrationTests\Boxnet.Aws.Mvp.IntegrationTests.csproj", "{D0BA6112-D44E-4D83-A713-8C5C0649E77A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +37,14 @@ Global
 		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA1956FD-1E27-4A74-B831-1FBA14A7222F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA1956FD-1E27-4A74-B831-1FBA14A7222F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA1956FD-1E27-4A74-B831-1FBA14A7222F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA1956FD-1E27-4A74-B831-1FBA14A7222F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0BA6112-D44E-4D83-A713-8C5C0649E77A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0BA6112-D44E-4D83-A713-8C5C0649E77A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0BA6112-D44E-4D83-A713-8C5C0649E77A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0BA6112-D44E-4D83-A713-8C5C0649E77A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -39,6 +53,8 @@ Global
 		{4E05FB4D-A1C0-492A-9B74-E2828AB960AB} = {8D3E039C-C1B2-453A-8DA1-22A00B3D85AC}
 		{70523E67-0E06-44B8-9A57-8BC244B7E90B} = {FDB52034-1986-466E-845C-5EF6EBBB56D8}
 		{79C0F4E5-942F-4A91-8FDE-AC65CD366AB6} = {FDB52034-1986-466E-845C-5EF6EBBB56D8}
+		{FA1956FD-1E27-4A74-B831-1FBA14A7222F} = {B9E299FE-0B24-41CB-9576-D716860644CA}
+		{D0BA6112-D44E-4D83-A713-8C5C0649E77A} = {B9E299FE-0B24-41CB-9576-D716860644CA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {980E4E98-9BD9-458E-8537-6EA4B8E53A70}
