@@ -21,7 +21,7 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
         private const string FilterName = "Morpheus";
 
         [TestMethod]
-        public async Task TestPoliciesCreation()
+        public async Task TestRolesCloning()
         {
             var stack = new Stack()
             {
@@ -29,16 +29,39 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
                 Environment = StackEnvironment
             };
 
-            var service = new IamRolesService(
+            using (var service = new IamRolesService(
+                stack,
+                boxnetAwsAccessKeyId,
+                boxnetAwsAccessKey,
+                defaultAwsEndpointRegion,
+                infraAppAccessKeyId,
+                infraAppAccessKey,
+                defaultAwsEndpointRegion))
+            {
+                await service.CopyAllRolesAsync(FilterName);
+            }
+        }
+
+        [TestMethod]
+        public async Task TestGroupsCloning()
+        {
+            var stack = new Stack()
+            {
+                Name = StackName,
+                Environment = StackEnvironment
+            };
+
+            using (var service = new IamGroupsService(
                 stack,
                 boxnetAwsAccessKeyId,
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion,
                 boxnetAwsAccessKeyId,
                 boxnetAwsAccessKey,
-                defaultAwsEndpointRegion);
-
-            await service.CopyAllRolesAsync(FilterName);
+                defaultAwsEndpointRegion))
+            {
+                await service.CopyAllGroupsAsync(FilterName);
+            }
         }
     }
 }
