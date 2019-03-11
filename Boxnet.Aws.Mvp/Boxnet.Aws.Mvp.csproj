@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.EC2" Version="3.3.85.2" />
     <PackageReference Include="AWSSDK.IdentityManagement" Version="3.3.9.22" />
   </ItemGroup>
 

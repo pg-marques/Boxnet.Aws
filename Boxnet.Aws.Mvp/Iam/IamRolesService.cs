@@ -35,7 +35,7 @@ namespace Boxnet.Aws.Mvp.Iam
         {
             return collection.Select(item => new IamRole()
             {
-                Id = new ResourceId()
+                Id = new ResourceIdWithArn()
                 {
                     PreviousName = item.Item1.Item1.RoleName,
                     NewName = NewNameFor(item.Item1.Item1.RoleName),
@@ -46,7 +46,7 @@ namespace Boxnet.Aws.Mvp.Iam
                 MaxSessionDuration = item.Item1.Item1.MaxSessionDuration,
                 Path = item.Item1.Item1.Path,
                 PermissionsBoundary = item.Item1.Item1.PermissionsBoundary,
-                AttachedPoliciesIds = item.Item1.Item2.Select(policy => new ResourceId()
+                AttachedPoliciesIds = item.Item1.Item2.Select(policy => new ResourceIdWithArn()
                 {
                     PreviousArn = policy.PolicyArn,
                     PreviousName = policy.PolicyName,
@@ -179,7 +179,7 @@ namespace Boxnet.Aws.Mvp.Iam
 
         private async Task<List<Role>> GetRolesFromDestinationAsync(string nameFilter)
         {
-            var roles = await GetRolesAsync(new ResourceNameStarsWithTermInsensitiveCaseFilter(nameFilter), destinationClient);
+            var roles = await GetRolesAsync(new ResourceNamePrefixInsensitiveCaseFilter(nameFilter), destinationClient);
 
             return roles.ToList().Where(role =>
             {

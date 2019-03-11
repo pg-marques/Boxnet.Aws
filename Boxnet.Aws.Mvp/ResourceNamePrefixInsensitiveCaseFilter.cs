@@ -4,11 +4,11 @@ using System.Text;
 
 namespace Boxnet.Aws.Mvp
 {
-    public class ResourceNameStarsWithTermInsensitiveCaseFilter : IResourceNameFilter
+    public class ResourceNamePrefixInsensitiveCaseFilter : IResourceNameFilter
     {
         private readonly string term;
 
-        public ResourceNameStarsWithTermInsensitiveCaseFilter(string term)
+        public ResourceNamePrefixInsensitiveCaseFilter(string term)
         {
             this.term = term;
         }

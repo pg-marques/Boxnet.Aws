@@ -63,5 +63,27 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
                 await service.CopyAllGroupsAsync(FilterName);
             }
         }
+
+        //[TestMethod]
+        //public async Task TestUsersCloning()
+        //{
+        //    var stack = new Stack()
+        //    {
+        //        Name = StackName,
+        //        Environment = StackEnvironment
+        //    };
+
+        //    using (var service = new IamUsersService(
+        //        stack,
+        //        boxnetAwsAccessKeyId,
+        //        boxnetAwsAccessKey,
+        //        defaultAwsEndpointRegion,
+        //        infraAppAccessKeyId,
+        //        infraAppAccessKey,
+        //        defaultAwsEndpointRegion))
+        //    {
+        //        await service.CopyAllUsersAsync(FilterName);
+        //    }
+        //}
     }
 }

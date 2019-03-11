@@ -12,5 +12,6 @@ namespace Boxnet.Aws.Mvp
         public IEnumerable<IamPolicy> IamPolicies { get; set; }
         public IEnumerable<IamRole> IamRoles { get; set; }
         public IEnumerable<IamGroup> IamGroups { get; set; }
+        public IEnumerable<IamUser> IamUsers { get; set; }        
     }
 }

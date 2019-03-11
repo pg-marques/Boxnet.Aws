@@ -35,14 +35,14 @@ namespace Boxnet.Aws.Mvp.Iam
         {
             return collection.Select(item => new IamGroup()
             {
-                Id = new ResourceId()
+                Id = new ResourceIdWithArn()
                 {
                     PreviousName = item.Item1.Item1.GroupName,
                     NewName = NewNameFor(item.Item1.Item1.GroupName),
                     PreviousArn = item.Item1.Item1.Arn,
                 },
                 Path = item.Item1.Item1.Path,
-                AttachedPoliciesIds = item.Item1.Item2.Select(policy => new ResourceId()
+                AttachedPoliciesIds = item.Item1.Item2.Select(policy => new ResourceIdWithArn()
                 {
                     PreviousArn = policy.PolicyArn,
                     PreviousName = policy.PolicyName,
@@ -168,17 +168,17 @@ namespace Boxnet.Aws.Mvp.Iam
 
         private async Task<List<Group>> GetGroupsFromSourceAsync(string nameFilter)
         {
-            var collection = await GetRolesAsync(new ResourceNameContainsTermInsensitiveCaseFilter(nameFilter), sourceClient);
-            var prefixFilter = new ResourceNameStarsWithTermInsensitiveCaseFilter(Prefix());
+            var collection = await GetGroupsAsync(new ResourceNameContainsTermInsensitiveCaseFilter(nameFilter), sourceClient);
+            var prefixFilter = new ResourceNamePrefixInsensitiveCaseFilter(Prefix());
             return collection.Where(item => !prefixFilter.IsValid(item.GroupName)).ToList();
         }
 
         private async Task<List<Group>> GetGroupsFromDestinationAsync(string nameFilter)
         {
-            return await GetRolesAsync(new ResourceNameStarsWithTermInsensitiveCaseFilter(nameFilter), destinationClient);            
+            return await GetGroupsAsync(new ResourceNamePrefixInsensitiveCaseFilter(nameFilter), destinationClient);            
         }
 
-        private async Task<List<Group>> GetRolesAsync(IResourceNameFilter filter, AmazonIdentityManagementServiceClient client)
+        private async Task<List<Group>> GetGroupsAsync(IResourceNameFilter filter, AmazonIdentityManagementServiceClient client)
         {
             var collection = new List<Group>();
 
