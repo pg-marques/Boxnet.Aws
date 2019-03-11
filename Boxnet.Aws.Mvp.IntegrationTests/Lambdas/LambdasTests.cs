@@ -1,14 +1,17 @@
 ﻿using Boxnet.Aws.Mvp.Iam;
+using Boxnet.Aws.Mvp.Lambdas;
+using Boxnet.Aws.Mvp.Newtworking;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
+namespace Boxnet.Aws.Mvp.IntegrationTests.Lambdas
 {
     [TestClass]
-    public class IamResourcesTests
+    public class LambdasTests
     {
         private readonly string boxnetAwsAccessKeyId = Environment.GetEnvironmentVariable("BoxnetAwsAccessKeyId");
         private readonly string boxnetAwsAccessKey = Environment.GetEnvironmentVariable("BoxnetAwsAccessKey");
@@ -19,15 +22,20 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
         private const string StackName = "Summer";
         private const string StackEnvironment = "Prod";
         private const string FilterName = "Morpheus";
-
+        private const string VPCName = "REDE_BOXNET";
+        private const string SubnetsPrefix = "SUB_MIDDLE_";
+        private const string SecurityGroupName = "lambda-integracoes";
+        private const string DirectoryPath = @"C:\Users\paul.marques\Desktop\InfraApp\Temp";
         [TestMethod]
-        public async Task TestRolesCloning()
+        public async Task TestLambdas()
         {
             var stack = new Stack()
             {
                 Name = StackName,
                 Environment = StackEnvironment
             };
+
+            var filter = new ResourceNamePrefixInsensitiveCaseFilter(FilterName);
 
             using (var service = new IamRolesService(
                 stack,
@@ -40,18 +48,8 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
             {
                 await service.CopyAllRolesAsync(FilterName);
             }
-        }
 
-        [TestMethod]
-        public async Task TestGroupsCloning()
-        {
-            var stack = new Stack()
-            {
-                Name = StackName,
-                Environment = StackEnvironment
-            };
-
-            using (var service = new IamGroupsService(
+            using (var service = new VpcsService(
                 stack,
                 boxnetAwsAccessKeyId,
                 boxnetAwsAccessKey,
@@ -60,52 +58,28 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion))
             {
-                await service.CopyAllGroupsAsync(FilterName);
+                await service.CopyAllNetworkingResources(
+                    new ResourceNamePrefixInsensitiveCaseFilter(VPCName),
+                    new ResourceNamePrefixInsensitiveCaseFilter(SubnetsPrefix),
+                    new ResourceNamePrefixInsensitiveCaseFilter(SecurityGroupName));
             }
-        }
 
-        [TestMethod]
-        public async Task TestPoliciesCloning()
-        {
-            var stack = new Stack()
-            {
-                Name = StackName,
-                Environment = StackEnvironment
-            };
-
-            using (var service = new IamPoliciesService(
+            using (var service = new LambdasService(
                 stack,
                 boxnetAwsAccessKeyId,
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion,
                 boxnetAwsAccessKeyId,
                 boxnetAwsAccessKey,
-                defaultAwsEndpointRegion))
+                defaultAwsEndpointRegion,
+                DirectoryPath))
             {
-                await service.CopyAllPoliciesAsync(FilterName);
+                await service.CopyAsync(
+                    filter, 
+                    stack.IamRoles.FirstOrDefault(item => item.Id.NewName.EndsWith("AWSLambdasMorpheus")),
+                    stack.Vpcs.First().Subnets,
+                    stack.Vpcs.First().SecurityGroups);
             }
         }
-
-        //[TestMethod]
-        //public async Task TestUsersCloning()
-        //{
-        //    var stack = new Stack()
-        //    {
-        //        Name = StackName,
-        //        Environment = StackEnvironment
-        //    };
-
-        //    using (var service = new IamUsersService(
-        //        stack,
-        //        boxnetAwsAccessKeyId,
-        //        boxnetAwsAccessKey,
-        //        defaultAwsEndpointRegion,
-        //        infraAppAccessKeyId,
-        //        infraAppAccessKey,
-        //        defaultAwsEndpointRegion))
-        //    {
-        //        await service.CopyAllUsersAsync(FilterName);
-        //    }
-        //}
     }
 }

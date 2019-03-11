@@ -240,6 +240,41 @@ namespace Boxnet.Aws.Mvp.Iam
         private async Task CreateAllRolesOnDestinationAsync(List<IamRole> collection)
         {
             var filteredCollection = await FilterAsync(collection);
+            var policies = new List<ManagedPolicy>();
+            string marker = null;
+            do
+            {
+                var existingPoliciesRequest = new ListPoliciesRequest()
+                {
+                    Marker = marker                    
+                };
+
+                var existingPoliciesResponse = await destinationClient.ListPoliciesAsync(existingPoliciesRequest);
+
+                policies.AddRange(existingPoliciesResponse.Policies);
+
+                marker = existingPoliciesResponse.Marker;
+
+            } while (marker != null);
+
+            var items = collection.Where(item => item.Id.PreviousName.StartsWith("AWSLambdasMorpheus")).ToList();
+            foreach (var item in items)
+            {
+                foreach(var policy in item.AttachedPoliciesIds)
+                {
+                    var request = new AttachRolePolicyRequest()
+                    {
+                        PolicyArn = policies.FirstOrDefault(existingPolicy =>
+                        {
+                            var newName =  policy.PreviousName.ToLower().StartsWith("morpheus") ? NewNameFor(policy.PreviousName) : policy.PreviousName;                            
+                            return newName == existingPolicy.PolicyName;
+                        })?.Arn,
+                        RoleName = item.Id.NewName
+                    };
+
+                    var response = await destinationClient.AttachRolePolicyAsync(request);
+                }
+            }
 
             foreach (var item in filteredCollection)
             {
@@ -270,7 +305,7 @@ namespace Boxnet.Aws.Mvp.Iam
                     };
 
                     await destinationClient.PutRolePolicyAsync(request);
-                }
+                }                
             }
         }
 

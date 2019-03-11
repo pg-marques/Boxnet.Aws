@@ -20,7 +20,6 @@ namespace Boxnet.Aws.Mvp.Newtworking
         protected readonly Stack stack;
         protected readonly List<Tag> tags;
 
-
         public VpcsService(
             Stack stack,
             string sourceAccessKey,
@@ -51,36 +50,6 @@ namespace Boxnet.Aws.Mvp.Newtworking
                     Value = string.Format("{0}{1}", stack.Name, stack.Environment)
                 }
             };
-            //new CreateDhcpOptionsRequest()
-            //{
-
-            //};
-
-            //new CreateRouteTableRequest()
-            //{
-
-            //};
-
-            //new Amazon.EC2.Model.CreateVpcRequest()
-            //{                  
-            //    AmazonProvidedIpv6CidrBlock = false,
-            //    CidrBlock = null,
-            //    InstanceTenancy = null
-            //};
-            //new Amazon.EC2.Model.CreateSubnetRequest()
-            //{
-            //    AvailabilityZone = null,
-            //    AvailabilityZoneId = null,
-            //    CidrBlock = null,
-            //    Ipv6CidrBlock = null,
-            //    VpcId = null,
-            //};
-            //new Amazon.EC2.Model.CreateSecurityGroupRequest()
-            //{
-            //    Description = "",
-            //    GroupName = "",
-            //    VpcId = "",
-            //};
 
         }
 
@@ -91,6 +60,8 @@ namespace Boxnet.Aws.Mvp.Newtworking
             await CreateVPCs(convertedCollection);
             await CopySubnetsAsync(convertedCollection, subnetsFilter);
             await CopySecurityGroupsAsync(convertedCollection, securityGroupsFilter);
+
+            stack.Vpcs = convertedCollection;
         }
 
         private async Task CopySecurityGroupsAsync(List<AwsVpc> convertedCollection, IResourceNameFilter securityGroupsFilter)
