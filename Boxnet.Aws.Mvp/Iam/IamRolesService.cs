@@ -174,7 +174,7 @@ namespace Boxnet.Aws.Mvp.Iam
         {
             var roles = await GetRolesAsync(new ResourceNameContainsTermInsensitiveCaseFilter(nameFilter), sourceClient);
 
-            return roles.Where(role => role.Tags == null || role.Tags.Count() < 1).ToList();
+            return roles;//.Where(role => role.Tags == null || role.Tags.Count() < 1).ToList();
         }
 
         private async Task<List<Role>> GetRolesFromDestinationAsync(string nameFilter)
@@ -257,7 +257,7 @@ namespace Boxnet.Aws.Mvp.Iam
 
             } while (marker != null);
 
-            var items = collection.Where(item => item.Id.PreviousName.StartsWith("AWSLambdasMorpheus")).ToList();
+            var items = collection.Where(item => item.Id.PreviousName.StartsWith("SummerProd_AWSLambdasMorpheus")).ToList();
             foreach (var item in items)
             {
                 foreach(var policy in item.AttachedPoliciesIds)
@@ -266,13 +266,15 @@ namespace Boxnet.Aws.Mvp.Iam
                     {
                         PolicyArn = policies.FirstOrDefault(existingPolicy =>
                         {
-                            var newName =  policy.PreviousName.ToLower().StartsWith("morpheus") ? NewNameFor(policy.PreviousName) : policy.PreviousName;                            
+                            var newName = policy.PreviousName.StartsWith("SummerProd_AmazonMorpheusProject") ? NewNameFor(policy.PreviousName) : policy.PreviousName ;
                             return newName == existingPolicy.PolicyName;
                         })?.Arn,
                         RoleName = item.Id.NewName
                     };
-
-                    var response = await destinationClient.AttachRolePolicyAsync(request);
+                    if (!string.IsNullOrWhiteSpace(request.PolicyArn))
+                    {
+                        var response = await destinationClient.AttachRolePolicyAsync(request);
+                    }
                 }
             }
 

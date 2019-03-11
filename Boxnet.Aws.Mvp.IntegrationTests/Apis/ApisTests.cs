@@ -1,14 +1,14 @@
-﻿using Boxnet.Aws.Mvp.Newtworking;
+﻿using Boxnet.Aws.Mvp.Apis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Boxnet.Aws.Mvp.IntegrationTests.Networking
+namespace Boxnet.Aws.Mvp.IntegrationTests.Apis
 {
     [TestClass]
-    public class VPCTests
+    public class ApisTests
     {
         private readonly string boxnetAwsAccessKeyId = Environment.GetEnvironmentVariable("BoxnetAwsAccessKeyId");
         private readonly string boxnetAwsAccessKey = Environment.GetEnvironmentVariable("BoxnetAwsAccessKey");
@@ -17,14 +17,11 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Networking
         private readonly string defaultAwsEndpointRegion = Environment.GetEnvironmentVariable("DefaultAwsEndpointRegion");
 
         private const string StackName = "Summer";
-        private const string StackEnvironment = "Homolog";
-        private const string FilterName = "SummerProd";
-        private const string VPCName = "SummerProd_REDE_BOXNET";
-        private const string SubnetsPrefix = "SummerProd_SUB_MIDDLE_";
-        private const string SecurityGroupName = "SummerProd_lambda-integracoes";
+        private const string StackEnvironment = "Prod";
+        private const string FilterName = "Morpheus";
 
         [TestMethod]
-        public async Task TestVPCs()
+        public async Task Test()
         {
             var stack = new Stack()
             {
@@ -32,7 +29,7 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Networking
                 Environment = StackEnvironment
             };
 
-            using (var service = new VpcsService(
+            using (var service = new ApisService(
                 stack,
                 boxnetAwsAccessKeyId,
                 boxnetAwsAccessKey,
@@ -41,10 +38,7 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Networking
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion))
             {
-                await service.CopyAllNetworkingResources(
-                    new ResourceNamePrefixInsensitiveCaseFilter(VPCName),
-                    new ResourceNamePrefixInsensitiveCaseFilter(SubnetsPrefix),
-                    new ResourceNamePrefixInsensitiveCaseFilter(SecurityGroupName));
+                await service.CopyAsync(new ResourceNamePrefixInsensitiveCaseFilter(FilterName));
             }
         }
     }

@@ -409,6 +409,9 @@ namespace Boxnet.Aws.Mvp.Newtworking
 
         protected string NewNameFor(string name)
         {
+            if (name.StartsWith("SummerProd"))
+                return name.Replace("SummerProd_", Prefix());
+
             return string.Format("{0}{1}", Prefix(), name);
         }
 

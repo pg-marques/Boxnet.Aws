@@ -58,6 +58,7 @@ namespace Boxnet.Aws.Mvp.Lambdas
             var lambdas = await ListLambdasOnSourceAsync(filter);
             var collection = Convert(lambdas, role, subnets, groups);
             await CreateAsync(lambdas, collection);
+            stack.Lambdas = collection;
         }
 
         private async Task DownloadAsync(List<FunctionConfiguration> lambdas)
@@ -136,7 +137,7 @@ namespace Boxnet.Aws.Mvp.Lambdas
             //await DownloadAsync(data);
             foreach (var lambda in pendinglambdas)
             {
-                var filePath = Path.Combine(directoryPath, "lambdas", string.Format("{0}.zip", lambda.Id.PreviousName));
+                var filePath = Path.Combine(directoryPath, "lambdas", string.Format("{0}.zip", lambda.Id.PreviousName.Replace("SummerProd_", string.Empty)));
                 var bytes = File.ReadAllBytes(filePath);
                 var request = new CreateFunctionRequest()
                 {
@@ -168,6 +169,9 @@ namespace Boxnet.Aws.Mvp.Lambdas
         }
         protected string NewNameFor(string name)
         {
+            if (name.StartsWith("SummerProd"))
+                return name.Replace("SummerProd_", Prefix());
+
             return string.Format("{0}{1}", Prefix(), name);
         }
 

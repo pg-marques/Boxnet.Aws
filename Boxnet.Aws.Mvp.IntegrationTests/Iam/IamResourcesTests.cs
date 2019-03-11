@@ -17,8 +17,8 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
         private readonly string defaultAwsEndpointRegion = Environment.GetEnvironmentVariable("DefaultAwsEndpointRegion");
 
         private const string StackName = "Summer";
-        private const string StackEnvironment = "Prod";
-        private const string FilterName = "Morpheus";
+        private const string StackEnvironment = "Homolog";
+        private const string FilterName = "SummerProd";
 
         [TestMethod]
         public async Task TestRolesCloning()

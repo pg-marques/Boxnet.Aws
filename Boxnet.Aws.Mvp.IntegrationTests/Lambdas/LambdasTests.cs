@@ -20,11 +20,11 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Lambdas
         private readonly string defaultAwsEndpointRegion = Environment.GetEnvironmentVariable("DefaultAwsEndpointRegion");
 
         private const string StackName = "Summer";
-        private const string StackEnvironment = "Prod";
-        private const string FilterName = "Morpheus";
-        private const string VPCName = "REDE_BOXNET";
-        private const string SubnetsPrefix = "SUB_MIDDLE_";
-        private const string SecurityGroupName = "lambda-integracoes";
+        private const string StackEnvironment = "Homolog";
+        private const string FilterName = "SummerProd";
+        private const string VPCName = "SummerProd_REDE_BOXNET";
+        private const string SubnetsPrefix = "SummerProd_SUB_MIDDLE_";
+        private const string SecurityGroupName = "SummerProd_lambda-integracoes";
         private const string DirectoryPath = @"C:\Users\paul.marques\Desktop\InfraApp\Temp";
         [TestMethod]
         public async Task TestLambdas()
