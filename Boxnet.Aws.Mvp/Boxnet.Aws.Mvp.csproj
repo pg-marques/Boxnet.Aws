@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.APIGateway" Version="3.3.23.30" />
+    <PackageReference Include="AWSSDK.CognitoIdentity" Version="3.3.2.77" />
+    <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="3.3.12.20" />
     <PackageReference Include="AWSSDK.EC2" Version="3.3.85.2" />
     <PackageReference Include="AWSSDK.IdentityManagement" Version="3.3.9.22" />
     <PackageReference Include="AWSSDK.Lambda" Version="3.3.19.23" />

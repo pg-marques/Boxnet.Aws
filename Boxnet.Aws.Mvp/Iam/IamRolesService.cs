@@ -257,26 +257,26 @@ namespace Boxnet.Aws.Mvp.Iam
 
             } while (marker != null);
 
-            var items = collection.Where(item => item.Id.PreviousName.StartsWith("SummerProd_AWSLambdasMorpheus")).ToList();
-            foreach (var item in items)
-            {
-                foreach(var policy in item.AttachedPoliciesIds)
-                {
-                    var request = new AttachRolePolicyRequest()
-                    {
-                        PolicyArn = policies.FirstOrDefault(existingPolicy =>
-                        {
-                            var newName = policy.PreviousName.StartsWith("SummerProd_AmazonMorpheusProject") ? NewNameFor(policy.PreviousName) : policy.PreviousName ;
-                            return newName == existingPolicy.PolicyName;
-                        })?.Arn,
-                        RoleName = item.Id.NewName
-                    };
-                    if (!string.IsNullOrWhiteSpace(request.PolicyArn))
-                    {
-                        var response = await destinationClient.AttachRolePolicyAsync(request);
-                    }
-                }
-            }
+            //var items = collection.Where(item => item.Id.PreviousName.StartsWith("AWSLambdasMorpheus")).ToList();
+            //foreach (var item in items)
+            //{
+            //    foreach(var policy in item.AttachedPoliciesIds)
+            //    {
+            //        var request = new AttachRolePolicyRequest()
+            //        {
+            //            PolicyArn = policies.FirstOrDefault(existingPolicy =>
+            //            {
+            //                var newName = policy.PreviousName.StartsWith("AmazonMorpheusProject") ? NewNameFor(policy.PreviousName) : policy.PreviousName ;
+            //                return newName == existingPolicy.PolicyName;
+            //            })?.Arn,
+            //            RoleName = item.Id.NewName
+            //        };
+            //        if (!string.IsNullOrWhiteSpace(request.PolicyArn))
+            //        {
+            //            var response = await destinationClient.AttachRolePolicyAsync(request);
+            //        }
+            //    }
+            //}
 
             foreach (var item in filteredCollection)
             {
@@ -323,7 +323,7 @@ namespace Boxnet.Aws.Mvp.Iam
                     item.Id.NewArn = arn;
             }
 
-            return newCollection.Where(item => string.IsNullOrWhiteSpace(item.Id.NewArn)).ToList();
+            return newCollection.Where(item => string.IsNullOrWhiteSpace(item.Id.NewArn) && !item.Id.PreviousName.StartsWith("SummerHomolog")).ToList();
         }
     }
 }

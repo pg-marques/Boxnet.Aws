@@ -10,21 +10,9 @@ namespace Boxnet.Aws.Mvp.Apis
         public ResourceId Id { get; set; }
         public ResourceId ParentId { get; set; }
         public string PathPart { get; set; }
+        public string Path { get; set; }
         public ResourceIdWithAwsId RestApiId { get; set; }
-        public IEnumerable<string> Levels
-        {
-            get
-            {
-                return PathPart?.Trim('/').Split('/');
-            }
-        }
-
-        public int Depth
-        {
-            get
-            {
-                return Levels == null || Levels.Count() < 1 ? 0 : Levels.Count();
-            }
-        }
+        public List<AwsApiResource> Children { get; set; } = new List<AwsApiResource>();
+        public List<AwsApiMethod> Methods { get; set; } = new List<AwsApiMethod>();
     }
 }

@@ -1,4 +1,5 @@
-﻿using Boxnet.Aws.Mvp.Iam;
+﻿using Boxnet.Aws.Mvp.Cognito;
+using Boxnet.Aws.Mvp.Iam;
 using Boxnet.Aws.Mvp.Lambdas;
 using Boxnet.Aws.Mvp.Newtworking;
 using System;
@@ -16,6 +17,7 @@ namespace Boxnet.Aws.Mvp
         public IEnumerable<IamGroup> IamGroups { get; set; }
         public IEnumerable<IamUser> IamUsers { get; set; }
         public IEnumerable<AwsVpc> Vpcs { get; set; }
-        public IEnumerable<Lambda> Lambdas { get; internal set; }
+        public IEnumerable<Lambda> Lambdas { get; set; }
+        public IEnumerable<UserPool> UsersPools { get; set; }
     }
 }

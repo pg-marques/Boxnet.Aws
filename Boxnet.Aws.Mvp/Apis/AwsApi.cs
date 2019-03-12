@@ -10,20 +10,14 @@ namespace Boxnet.Aws.Mvp.Apis
     public class AwsApi
     {
         public ResourceIdWithAwsId Id { get; set; }
-        public List<string> BinaryMediaTypes { get; set; }
+        public List<string> BinaryMediaTypes { get; set; } = new List<string>();
         public ApiKeySourceType ApiKeySource { get; set; }
         public string Description { get; set; }
         public EndpointConfiguration EndpointConfiguration { get; set; }
         public int MinimumCompressionSize { get; set; }
         public string Policy { get; set; }
         public string Version { get; set; }
-        public IEnumerable<AwsApiResource> Resources { get; set; } = new List<AwsApiResource>();
-        public AwsApiResource RootResource
-        {
-            get
-            {
-                return Resources?.FirstOrDefault(resource => resource.ParentId.PreviousName == null && resource.PathPart == null && resource.Depth == 0);
-            }
-        }
+        public AwsApiResource RootResource { get; set; }
+        public List<AwsApiModel> Models { get; set; } = new List<AwsApiModel>();
     }
 }

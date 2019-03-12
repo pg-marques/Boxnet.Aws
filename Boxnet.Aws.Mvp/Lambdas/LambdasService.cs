@@ -101,7 +101,7 @@ namespace Boxnet.Aws.Mvp.Lambdas
                 Layers = null,
                 MemorySize = item.MemorySize,
                 PublishOnCreation = true,
-                Role = role.Id.NewArn,
+                Role = role != null ? role.Id.NewArn : null,
                 Runtime = item.Runtime,
                 Timeout = item.Timeout,
                 TracingConfig =
@@ -111,23 +111,25 @@ namespace Boxnet.Aws.Mvp.Lambdas
                         Mode = item.TracingConfig.Mode
                     } :
                     null,
-                VpcConfig = new VpcConfig()
+                VpcConfig =  (subnets != null && groups != null) ? new VpcConfig()
                 {
                     SecurityGroupIds = groups.Select(group => group.Id.NewId).ToList(),
                     SubnetIds = subnets.Select(subnet => subnet.Id.NewId).ToList()
-                }
+                } : null
             }).ToList();
+        }
+
+        public async Task FillStackWithLambdasOnDestinationAsync(IResourceNameFilter previousNamefilter)
+        {
+            var collection = await ListLambdasOnSourceAsync(previousNamefilter);
+            var lambdas = Convert(collection, null, null, null);
+            await UpdateWithExistingDataAsync(lambdas);
+            stack.Lambdas = lambdas.Where(it => it.Id.NewArn != null).ToList();
         }
 
         private async Task CreateAsync(List<FunctionConfiguration> data, List<Lambda> lambdas)
         {
-            var existingLambdas = await ListLambdasOnDestinationAsync();
-            foreach (var lambda in lambdas)
-            {
-                var existingVpc = existingLambdas.FirstOrDefault(item => item.FunctionName == lambda.Id.NewName);
-                if (existingVpc != null)
-                    lambda.Id.NewArn = existingVpc.FunctionArn;
-            }
+            await UpdateWithExistingDataAsync(lambdas);
 
             var pendinglambdas = lambdas.Where(vpc => string.IsNullOrWhiteSpace(vpc.Id.NewArn)).ToList();
 
@@ -167,6 +169,18 @@ namespace Boxnet.Aws.Mvp.Lambdas
                 lambda.Id.NewArn = response.FunctionArn;
             }
         }
+
+        private async Task UpdateWithExistingDataAsync(List<Lambda> lambdas)
+        {
+            var existingLambdas = await ListLambdasOnDestinationAsync();
+            foreach (var lambda in lambdas)
+            {
+                var existingVpc = existingLambdas.FirstOrDefault(item => item.FunctionName == lambda.Id.NewName);
+                if (existingVpc != null)
+                    lambda.Id.NewArn = existingVpc.FunctionArn;
+            }
+        }
+
         protected string NewNameFor(string name)
         {
             if (name.StartsWith("SummerProd"))
