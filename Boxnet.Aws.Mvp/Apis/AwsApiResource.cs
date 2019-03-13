@@ -14,5 +14,6 @@ namespace Boxnet.Aws.Mvp.Apis
         public ResourceIdWithAwsId RestApiId { get; set; }
         public List<AwsApiResource> Children { get; set; } = new List<AwsApiResource>();
         public List<AwsApiMethod> Methods { get; set; } = new List<AwsApiMethod>();
+        
     }
 }

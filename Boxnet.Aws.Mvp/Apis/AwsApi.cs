@@ -19,5 +19,7 @@ namespace Boxnet.Aws.Mvp.Apis
         public string Version { get; set; }
         public AwsApiResource RootResource { get; set; }
         public List<AwsApiModel> Models { get; set; } = new List<AwsApiModel>();
+        public List<AwsApiAuthorizer> Authorizers { get; set; } = new List<AwsApiAuthorizer>();
+        public List<AwsApiValidator> Validators { get; set; } = new List<AwsApiValidator>();
     }
 }

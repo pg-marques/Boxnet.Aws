@@ -1,4 +1,5 @@
-﻿using Boxnet.Aws.Mvp.Cognito;
+﻿using Boxnet.Aws.Mvp.Apis;
+using Boxnet.Aws.Mvp.Cognito;
 using Boxnet.Aws.Mvp.Iam;
 using Boxnet.Aws.Mvp.Lambdas;
 using Boxnet.Aws.Mvp.Newtworking;
@@ -19,5 +20,6 @@ namespace Boxnet.Aws.Mvp
         public IEnumerable<AwsVpc> Vpcs { get; set; }
         public IEnumerable<Lambda> Lambdas { get; set; }
         public IEnumerable<UserPool> UsersPools { get; set; }
+        public IEnumerable<AwsApi> Apis { get; set; }
     }
 }

@@ -55,102 +55,378 @@ namespace Boxnet.Aws.Mvp.Apis
             await CreateResourcesAsync(collection);
             await CreateModelsAsync(collection);
             await CreateAuthorizersAsync(collection);
+            await CreateValidatorsAsync(collection);
             await CreateMethodsAsync(collection);
+            await CreateMethodsResponsesAsync(collection);
+            await CreateIntegrationAsync(collection);
+
+            stack.Apis = collection;
+        }
+
+        private async Task CreateIntegrationAsync(List<AwsApi> collection)
+        {
+            await AddIntegrationRequestsFromSourceAsync(collection);
+        }
+
+        private async Task AddIntegrationRequestsFromSourceAsync(List<AwsApi> collection)
+        {
+            foreach (var api in collection)
+            {
+                await UpdateIntegrationsWithDestinationDataAsync(api.RootResource, api);
+            }
+        }
+
+        private async Task UpdateIntegrationsWithDestinationDataAsync(AwsApiResource resource, AwsApi api)
+        {
+            if (resource.Methods != null)
+            {
+                foreach (var method in resource.Methods)
+                {
+                    var request = new GetMethodRequest()
+                    {
+                        HttpMethod = method.Integration.HttpMethod,
+                        ResourceId = method.ResourceId.NewName,
+                        RestApiId = method.RestApiId.NewId
+                    };
+
+                    var response = await destinationClient.GetMethodAsync(request);
+
+                    if (response.MethodIntegration != null)
+                        method.Integration.IsCreated = true;
+                }
+
+                foreach (var method in resource.Methods)
+                {
+                    if (method?.Integration != null && !method.Integration.IsCreated)
+                    {
+                        var request = new PutIntegrationRequest()
+                        {
+                            CacheKeyParameters = method.Integration.CacheKeyParameters,
+                            CacheNamespace = method.ResourceId.NewName,
+                            ResourceId = method.ResourceId.NewName,
+                            ConnectionId = method.Integration.ConnectionId,
+                            ConnectionType = method.Integration.ConnectionType,
+                            ContentHandling = method.Integration.ContentHandling,
+                            Credentials = method.Integration.Credentials,
+                            HttpMethod = method.Integration.HttpMethod,
+                            IntegrationHttpMethod = method.Integration.IntegrationHttpMethod,
+                            PassthroughBehavior = method.Integration.PassthroughBehavior,
+                            RequestParameters = method.Integration.RequestParameters,
+                            RequestTemplates = method.Integration.RequestTemplates,
+                            RestApiId = method.RestApiId.NewId,
+                            TimeoutInMillis = method.Integration.TimeoutInMillis,
+                            Type = method.Integration.Type,
+                            Uri = method.Integration.Uri
+                        };
+
+                        if (request.ResourceId != null)
+                        {
+                            var response = await destinationClient.PutIntegrationAsync(request);
+                            method.Integration.IsCreated = true;
+                        }
+                    }
+                }
+            }
+
+            if (resource?.Children != null)
+            {
+                foreach (var child in resource.Children)
+                {
+                    await UpdateIntegrationsWithDestinationDataAsync(child, api);
+                }
+            }
+        }
+
+        private async Task CreateMethodsResponsesAsync(List<AwsApi> collection)
+        {
+            await AddMethodsResponsesFromSourceAsync(collection);
+        }
+
+        private async Task AddMethodsResponsesFromSourceAsync(List<AwsApi> collection)
+        {
+            foreach (var api in collection)
+            {
+                await AddResponsesToResourceAsync(api.RootResource, api);
+            }
+        }
+
+        private async Task AddResponsesToResourceAsync(AwsApiResource resource, AwsApi api)
+        {
+            if (resource?.Methods != null)
+            {
+                foreach (var method in resource.Methods)
+                {
+                    if (method?.Responses != null)
+                    {
+                        foreach (var response in method.Responses)
+                        {
+                            if (response.RequestModels != null)
+                                foreach (var model in response.RequestModels)
+                                {
+                                    var existingModel = api.Models?.FirstOrDefault(it => it.Id.PreviousId == model.Id.PreviousId);
+                                    if (existingModel != null)
+                                        model.Id = existingModel.Id;
+                                }
+                        }
+
+                        foreach (var response in method.Responses.Where(it => !it.IsCreated).ToList())
+                        {
+                            Dictionary<string, string> models = null;
+                            if (response.RequestModels != null)
+                            {
+                                models = new Dictionary<string, string>();
+                                foreach (var model in response.RequestModels)
+                                {
+                                    models.Add(model.ContentType, model.Id.NewName);
+                                }
+                            }
+                            var request = new PutMethodResponseRequest()
+                            {
+                                HttpMethod = response.HttpMethod,
+                                ResourceId = response.ResourceId.NewName,
+                                ResponseModels = models,
+                                ResponseParameters = response.ResponseParameters,
+                                RestApiId = response.RestApiId.NewId,
+                                StatusCode = response.StatusCode
+                            };
+                            var x = 0;
+
+                            var requestResponse = await destinationClient.PutMethodResponseAsync(request);
+                            response.IsCreated = true;
+                        }
+                    };
+                }
+            }
+
+            if (resource?.Children != null && resource.Children.Count() > 0)
+                foreach (var child in resource.Children)
+                    await AddResponsesToResourceAsync(child, api);
+        }
+
+        private async Task CreateValidatorsAsync(List<AwsApi> collection)
+        {
+            await AddValidatorsOnSourceAsync(collection);
+            await UpdateValidatorsWithDestinationDataAsync(collection);
+            await CreateValidatorsOnDestinationAsync(collection);
+        }
+
+        private async Task CreateValidatorsOnDestinationAsync(List<AwsApi> collection)
+        {
+            foreach (var api in collection)
+            {
+                foreach (var validator in api.Validators.Where(it => it.Id.NewId == null).ToList())
+                {
+                    var request = new CreateRequestValidatorRequest()
+                    {
+                        Name = validator.Id.NewName,
+                        RestApiId = api.Id.NewId,
+                        ValidateRequestBody = validator.ValidateRequestBody,
+                        ValidateRequestParameters = validator.ValidateRequestParameters
+                    };
+
+                    var response = await destinationClient.CreateRequestValidatorAsync(request);
+
+                    validator.Id.NewId = response.Id;
+
+                    await Task.Delay(250);
+                }
+            }
+        }
+
+        private async Task UpdateValidatorsWithDestinationDataAsync(List<AwsApi> collection)
+        {
+            foreach (var api in collection)
+            {
+                var validators = new List<RequestValidator>();
+                string position = null;
+                do
+                {
+                    var request = new GetRequestValidatorsRequest()
+                    {
+                        Position = position,
+                        RestApiId = api.Id.NewId
+                    };
+
+                    var response = await destinationClient.GetRequestValidatorsAsync(request);
+                    await Task.Delay(250);
+
+                    position = response.Position;
+
+                    validators.AddRange(response.Items);
+
+                } while (position != null);
+
+                foreach (var validator in api.Validators)
+                {
+                    var existingValidator = validators.FirstOrDefault(it => it.Name == validator.Id.NewName);
+                    if (existingValidator != null)
+                        validator.Id.NewId = existingValidator.Id;
+                }
+            }
+        }
+
+        private async Task AddValidatorsOnSourceAsync(List<AwsApi> collection)
+        {
+            foreach (var api in collection)
+            {
+                var validators = new List<RequestValidator>();
+                string position = null;
+                do
+                {
+                    var request = new GetRequestValidatorsRequest()
+                    {
+                        Position = position,
+                        RestApiId = api.Id.PreviousId
+                    };
+
+                    var response = await sourceClient.GetRequestValidatorsAsync(request);
+                    await Task.Delay(250);
+
+                    position = response.Position;
+
+                    validators.AddRange(response.Items);
+
+                } while (position != null);
+
+                foreach (var validator in validators)
+                {
+                    api.Validators.Add(new AwsApiValidator()
+                    {
+                        Id = new ResourceIdWithAwsId()
+                        {
+                            PreviousId = validator.Id,
+                            PreviousName = validator.Name,
+                            NewName = validator.Name
+                        },
+                        ApiId = api.Id,
+                        ValidateRequestBody = validator.ValidateRequestBody,
+                        ValidateRequestParameters = validator.ValidateRequestParameters
+                    });
+                }
+            }
         }
 
         private async Task CreateAuthorizersAsync(List<AwsApi> collection)
         {
             foreach (var api in collection)
             {
-                var authorizers = new List<Authorizer>();
-                string position = null;
-                do
+                var authorizersCollection = await GetAuthorizersOnSourceAsync(api);
+
+                foreach (var authorizerData in authorizersCollection)
                 {
-                    var request = new GetAuthorizersRequest()
-                    {
-                        Position = position,
-                        RestApiId = api.Id.PreviousId
-                    };
+                    string authorizerUri = null;
+                    List<string> providersARNS = null;
 
-                    var response = await sourceClient.GetAuthorizersAsync(request);
-
-                    authorizers.AddRange(response.Items);
-
-                    position = response.Position;
-
-                } while (position != null);
-
-                var existingAuthorizers = new List<Authorizer>();
-                position = null;
-                do
-                {
-                    var request = new GetAuthorizersRequest()
-                    {
-                        Position = position,
-                        RestApiId = api.Id.NewId
-                    };
-
-                    var response = await destinationClient.GetAuthorizersAsync(request);
-
-                    existingAuthorizers.AddRange(response.Items);
-
-                    position = response.Position;
-
-                } while (position != null);
-
-                foreach (var authorizerData in authorizers)
-                {
-                    var newName = NewNameFor(authorizerData.Name);
-                    var existingAuthorizer = existingAuthorizers.FirstOrDefault(it => it.Name == newName);
-
-                    if (existingAuthorizer != null)
-                        authorizer
-                }
-
-                foreach (var authorizerData in authorizers)
-                {
                     if (authorizerData.Type == AuthorizerType.COGNITO_USER_POOLS)
                     {
-                        var authRequest = new CreateAuthorizerRequest()
-                        {
-                            AuthorizerCredentials = authorizerData.AuthorizerCredentials,
-                            AuthorizerResultTtlInSeconds = authorizerData.AuthorizerResultTtlInSeconds,
-                            AuthorizerUri = authorizerData.AuthorizerUri,
-                            Type = authorizerData.Type,
-                            AuthType = authorizerData.AuthType,
-                            IdentitySource = authorizerData.IdentitySource,
-                            IdentityValidationExpression = authorizerData.IdentityValidationExpression,
-                            Name = NewNameFor(authorizerData.Name),
-                            ProviderARNs = authorizerData.ProviderARNs.Select(it => stack?.UsersPools?.FirstOrDefault(u => u.Id.PreviousArn == it).Id.NewArn).ToList(),
-                            RestApiId = api.Id.NewId
-                        };
-                    } else if (authorizerData.Type == AuthorizerType.REQUEST)
+                        providersARNS = authorizerData.ProviderARNs.Select(it => stack?.UsersPools?.FirstOrDefault(u => u.Id.PreviousArn == it).Id.NewArn).ToList();
+                    }
+                    else if (authorizerData.Type == AuthorizerType.REQUEST)
                     {
-                        string uri = null;
                         var lambda = stack?.Lambdas?.FirstOrDefault(it => authorizerData?.AuthorizerUri != null && authorizerData.AuthorizerUri.Contains(it.Id.PreviousArn));
 
                         if (lambda != null)
-                            uri = string.Format("arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/{0}/invocations", lambda.Id.NewArn);
-
-                        var authRequest = new CreateAuthorizerRequest()
-                        {
-                            AuthorizerCredentials = authorizerData.AuthorizerCredentials,
-                            AuthorizerResultTtlInSeconds = authorizerData.AuthorizerResultTtlInSeconds,
-                            AuthorizerUri = uri,
-                            Type = authorizerData.Type,
-                            AuthType = authorizerData.AuthType,
-                            IdentitySource = authorizerData.IdentitySource,
-                            IdentityValidationExpression = authorizerData.IdentityValidationExpression,
-                            Name = NewNameFor(authorizerData.Name),
-                            ProviderARNs = authorizerData.ProviderARNs,
-                            RestApiId = api.Id.NewId
-                        };
+                            authorizerUri = string.Format("arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/{0}/invocations", lambda.Id.NewArn);
                     }
+
+                    api.Authorizers.Add(new AwsApiAuthorizer()
+                    {
+                        AuthorizerCredentials = authorizerData.AuthorizerCredentials,
+                        AuthorizerResultTtlInSeconds = authorizerData.AuthorizerResultTtlInSeconds,
+                        AuthorizerUri = authorizerUri,
+                        AuthType = authorizerData.AuthType,
+                        Id = new AwsAuthorizerId()
+                        {
+                            PreviousId = authorizerData.Id,
+                            PreviousName = authorizerData.Name,
+                            NewName = NewNameFor(authorizerData.Name)
+                        },
+                        IdentitySource = authorizerData.IdentitySource,
+                        IdentityValidationExpression = authorizerData.IdentityValidationExpression,
+                        ProviderARNs = providersARNS,
+                        RestApiId = api.Id,
+                        Type = authorizerData.Type
+                    });
                 }
 
+                var existingAuthorizers = await GetAuthorizersOnDestinationAsync(api);
+
+                foreach (var authorizer in api.Authorizers)
+                {
+                    var existingAuthorizer = existingAuthorizers.FirstOrDefault(it => it.Name == authorizer.Id.NewName);
+
+                    if (existingAuthorizer != null)
+                        authorizer.Id.NewId = existingAuthorizer.Id;
+                }
+
+                foreach (var authorizer in api.Authorizers.Where(it => it.Id.NewId == null).ToList())
+                {
+                    var authRequest = new CreateAuthorizerRequest()
+                    {
+                        AuthorizerCredentials = authorizer.AuthorizerCredentials,
+                        AuthorizerResultTtlInSeconds = authorizer.AuthorizerResultTtlInSeconds,
+                        AuthorizerUri = authorizer.AuthorizerUri,
+                        Type = authorizer.Type,
+                        AuthType = authorizer.AuthType,
+                        IdentitySource = authorizer.IdentitySource,
+                        IdentityValidationExpression = authorizer.IdentityValidationExpression,
+                        Name = authorizer.Id.NewName,
+                        ProviderARNs = authorizer.ProviderARNs,
+                        RestApiId = api.Id.NewId
+                    };
+
+                    var authResponse = await destinationClient.CreateAuthorizerAsync(authRequest);
+
+                    authorizer.Id.NewId = authResponse.Id;
+                    await Task.Delay(250);
+                }
             }
+        }
 
+        private async Task<List<Authorizer>> GetAuthorizersOnDestinationAsync(AwsApi api)
+        {
+            var existingAuthorizers = new List<Authorizer>();
+            string position = null;
+            do
+            {
+                var request = new GetAuthorizersRequest()
+                {
+                    Position = position,
+                    RestApiId = api.Id.NewId
+                };
 
+                var response = await destinationClient.GetAuthorizersAsync(request);
+
+                existingAuthorizers.AddRange(response.Items);
+
+                position = response.Position;
+                await Task.Delay(250);
+
+            } while (position != null);
+            return existingAuthorizers;
+        }
+
+        private async Task<List<Authorizer>> GetAuthorizersOnSourceAsync(AwsApi api)
+        {
+            var authorizers = new List<Authorizer>();
+            string position = null;
+            do
+            {
+                var request = new GetAuthorizersRequest()
+                {
+                    Position = position,
+                    RestApiId = api.Id.PreviousId
+                };
+
+                var response = await sourceClient.GetAuthorizersAsync(request);
+
+                authorizers.AddRange(response.Items);
+
+                position = response.Position;
+                await Task.Delay(250);
+
+            } while (position != null);
+            return authorizers;
         }
 
         private async Task CreateModelsAsync(List<AwsApi> collection)
@@ -167,7 +443,7 @@ namespace Boxnet.Aws.Mvp.Apis
 
         private async Task CreateNonExistingModelAsync(AwsApi api)
         {
-            foreach(var model in api.Models.Where(it => it.Id.NewId == null).ToList())
+            foreach (var model in api.Models.Where(it => it.Id.NewId == null).ToList())
             {
                 var request = new CreateModelRequest()
                 {
@@ -180,12 +456,13 @@ namespace Boxnet.Aws.Mvp.Apis
 
                 var response = await destinationClient.CreateModelAsync(request);
                 model.Id.NewId = response.Id;
+                await Task.Delay(250);
             }
         }
 
         private void UpdateModels(AwsApi api, List<Model> existingCollection)
         {
-            foreach(var model in api.Models)
+            foreach (var model in api.Models)
             {
                 var existingModel = existingCollection.FirstOrDefault(it => it.Name == model.Id.PreviousName);
                 if (existingModel != null)
@@ -224,7 +501,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await destinationClient.GetModelsAsync(request);
-
+                await Task.Delay(250);
                 models.AddRange(response.Items);
 
                 position = response.Position;
@@ -252,6 +529,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 models.AddRange(response.Items);
 
                 position = response.Position;
+                await Task.Delay(250);
 
             } while (position != null);
 
@@ -280,7 +558,9 @@ namespace Boxnet.Aws.Mvp.Apis
         }
 
         private async Task UpdateMethodsWithDestinationAsync(AwsApiResource resource, AwsApi api, AwsApiMethod method)
-        {            
+        {
+            if (method == null) return;
+
             var request = new GetResourceRequest()
             {
                 ResourceId = resource.Id.NewName,
@@ -288,6 +568,7 @@ namespace Boxnet.Aws.Mvp.Apis
             };
 
             var response = await destinationClient.GetResourceAsync(request);
+            await Task.Delay(250);
 
             if (response?.ResourceMethods != null && !response.ResourceMethods.ContainsKey(method.Verb))
             {
@@ -299,23 +580,22 @@ namespace Boxnet.Aws.Mvp.Apis
                 {
                     ApiKeyRequired = method.ApiKeyRequired,
                     AuthorizationScopes = method.AuthorizationScopes,
-                    AuthorizationType = method.AuthorizationType,
-                    //AuthorizerId = method.AuthorizerId,
+                    AuthorizationType = method.AuthorizationType ?? "NONE",
+                    AuthorizerId = api.Authorizers?.FirstOrDefault(it => it.Id.PreviousId == method.AuthorizerId)?.Id.NewId,
                     HttpMethod = method.Verb,
                     OperationName = method.OperationName,
                     RequestModels = models,
                     RequestParameters = method.RequestParameters,
-                    RequestValidatorId = method.RequestValidatorId,
+                    RequestValidatorId = api?.Validators?.FirstOrDefault(it => it.Id.PreviousId == method.RequestValidatorId)?.Id?.NewId,
                     ResourceId = resource.Id.NewName,
-                    RestApiId = resource.RestApiId.NewId                    
+                    RestApiId = resource.RestApiId.NewId
                 };
 
-                
-
                 var methodResponse = await destinationClient.PutMethodAsync(methodRequest);
+                await Task.Delay(250);
             }
-            
-            
+
+
         }
 
         private async Task UpdateMethodsWithSourceAsync(AwsApiResource resource, AwsApi api, AwsApiMethod method)
@@ -332,6 +612,8 @@ namespace Boxnet.Aws.Mvp.Apis
             method.RequestValidatorId = response.RequestValidatorId;
             method.OperationName = response.OperationName;
             method.RequestParameters = response.RequestParameters;
+
+            await Task.Delay(250);
         }
 
         private async Task CreateResourcesAsync(List<AwsApi> collection)
@@ -340,7 +622,7 @@ namespace Boxnet.Aws.Mvp.Apis
             {
                 var resourcesCollection = await GetResourcesFromSourceAsync(api);
                 var rootResource = resourcesCollection.FirstOrDefault(it => it.Path == "/" && it.PathPart == null);
-                api.RootResource = Convert(rootResource, null, api, resourcesCollection);
+                api.RootResource = await ConvertAsync(rootResource, null, api, resourcesCollection);
                 var existingResourcesCollection = await GetResourcesFromDestinationAsync(api);
                 UpdateWithExistingResourceData(api.RootResource, existingResourcesCollection);
 
@@ -362,7 +644,7 @@ namespace Boxnet.Aws.Mvp.Apis
 
                 var response = await destinationClient.CreateResourceAsync(request);
                 resource.Id.NewName = response.Id;
-                await Task.Delay(1000);
+                await Task.Delay(250);
             }
 
             if (resource.Children != null && resource.Children.Count() > 0)
@@ -376,6 +658,25 @@ namespace Boxnet.Aws.Mvp.Apis
             if (item != null)
             {
                 resource.Id.NewName = item.Id;
+                if (resource.Methods != null)
+                    foreach (var method in resource.Methods)
+                    {
+                        if (item.ResourceMethods != null && item.ResourceMethods.ContainsKey(method?.Verb))
+                        {
+                            var existingMethod = item.ResourceMethods.FirstOrDefault(it => it.Key == method?.Verb).Value;
+
+                            if (method?.Responses != null)
+                                foreach (var response in method.Responses)
+                                {
+                                    var existingResponse = existingMethod.MethodResponses?.FirstOrDefault(it => it.Key == response.HttpMethod && it.Value.StatusCode == response.StatusCode);
+                                    if (existingResponse != null)
+                                    {
+                                        response.IsCreated = true;
+                                    }
+                                }
+
+                        }
+                    }
             }
             if (resource.Children != null && resource.Children.Count() > 0)
                 foreach (var child in resource.Children)
@@ -396,7 +697,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await destinationClient.GetResourcesAsync(request);
-                await Task.Delay(1000);
+                await Task.Delay(250);
                 resources.AddRange(response.Items);
 
                 position = response.Position;
@@ -405,7 +706,7 @@ namespace Boxnet.Aws.Mvp.Apis
             return resources;
         }
 
-        private AwsApiResource Convert(Resource item, AwsApiResource parent, AwsApi api, List<Resource> resourcesCollection)
+        private async Task<AwsApiResource> ConvertAsync(Resource item, AwsApiResource parent, AwsApi api, List<Resource> resourcesCollection)
         {
             var resource = new AwsApiResource()
             {
@@ -419,20 +720,86 @@ namespace Boxnet.Aws.Mvp.Apis
                 RestApiId = api.Id
             };
 
-            var childrenItems = resourcesCollection.Where(it => it.ParentId == resource.Id.PreviousName).ToList();
-
-            if (childrenItems != null && childrenItems.Count() > 0)
-                foreach (var child in childrenItems)
-                    resource.Children.Add(Convert(child, resource, api, resourcesCollection));
-
             if (item.ResourceMethods != null && item.ResourceMethods.Count > 0)
+            {
                 foreach (var method in item.ResourceMethods)
+                {
+                    var request = new GetMethodRequest()
+                    {
+                        HttpMethod = method.Key,
+                        ResourceId = item.Id,
+                        RestApiId = api.Id.PreviousId
+                    };
+
+                    var response = await sourceClient.GetMethodAsync(request);
+                    if (response?.MethodResponses != null && response.MethodResponses.Count() > 0)
+                        item.ResourceMethods[method.Key].MethodResponses = response.MethodResponses;
+
+                    if (response?.MethodIntegration != null)
+                    {
+                        item.ResourceMethods[method.Key].MethodIntegration = response.MethodIntegration;
+                    }
+                }
+
+                foreach (var method in item.ResourceMethods)
+                {
+                    string uri = null;
+                    if (!string.IsNullOrWhiteSpace(method.Value?.MethodIntegration?.Uri))
+                    {
+                        var lambda = stack.Lambdas.FirstOrDefault(it => method.Value.MethodIntegration.Uri.Contains(it.Id.PreviousArn));
+
+                        if (lambda != null)
+                            uri = string.Format("arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/{0}/invocations", lambda.Id.NewArn);
+                    }
+
                     resource.Methods.Add(new AwsApiMethod()
                     {
                         Verb = method.Key,
                         RestApiId = api.Id,
-                        ResourceId = resource.Id
+                        ResourceId = resource.Id,
+                        Responses = method.Value?.MethodResponses?.Select(it => new AwsApiMethodResponse()
+                        {
+                            HttpMethod = method.Key,
+                            ResourceId = resource.Id,
+                            ResponseParameters = it.Value?.ResponseParameters,
+                            RequestModels = it.Value?.ResponseModels?.Select(model => new AwsApiModel()
+                            {
+                                ContentType = model.Key,
+                                Id = new ResourceIdWithAwsId()
+                                {
+                                    PreviousName = model.Value
+                                }
+                            }).ToList(),
+                            RestApiId = api.Id,
+                            StatusCode = it.Value?.StatusCode
+                        })?.ToList(),
+                        Integration = new AwsApiMethodIntegration()
+                        {
+                            ResourceId = resource.Id,
+                            RestApiId = api.Id,
+                            CacheKeyParameters = method.Value.MethodIntegration.CacheKeyParameters,
+                            ConnectionId = method.Value.MethodIntegration.ConnectionId,
+                            ConnectionType = method.Value.MethodIntegration.ConnectionType,
+                            ContentHandling = method.Value.MethodIntegration.ContentHandling,
+                            Credentials = method.Value.MethodIntegration.Credentials,
+                            HttpMethod = method.Key,
+                            IntegrationHttpMethod = method.Value.MethodIntegration.HttpMethod,
+                            PassthroughBehavior = method.Value.MethodIntegration.PassthroughBehavior,
+                            RequestParameters = method.Value.MethodIntegration.RequestParameters,
+                            RequestTemplates = method.Value.MethodIntegration.RequestTemplates,
+                            TimeoutInMillis = method.Value.MethodIntegration.TimeoutInMillis,
+                            Type = method.Value.MethodIntegration.Type,
+                            Uri = uri
+                        }
                     });
+                }
+            }
+
+            var childrenItems = resourcesCollection.Where(it => it.ParentId == resource.Id.PreviousName).ToList();
+
+            if (childrenItems != null && childrenItems.Count() > 0)
+                foreach (var child in childrenItems)
+                    resource.Children.Add(await ConvertAsync(child, resource, api, resourcesCollection));
 
             return resource;
         }
@@ -450,7 +817,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await sourceClient.GetResourcesAsync(request);
-                await Task.Delay(1000);
+                await Task.Delay(250);
                 resources.AddRange(response.Items);
 
                 position = response.Position;
@@ -490,7 +857,7 @@ namespace Boxnet.Aws.Mvp.Apis
 
                 var response = await destinationClient.CreateRestApiAsync(request);
                 item.Id.NewId = response.Id;
-                await Task.Delay(1000);
+                await Task.Delay(250);
             }
         }
 
@@ -540,7 +907,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await destinationClient.GetRestApisAsync(request);
-                await Task.Delay(1000);
+                await Task.Delay(250);
 
                 apis.AddRange(response.Items.Where(item => filter.IsValid(item.Name)));
 

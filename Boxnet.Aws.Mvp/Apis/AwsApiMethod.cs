@@ -17,5 +17,7 @@ namespace Boxnet.Aws.Mvp.Apis
         public List<AwsApiModel> RequestModels { get; set; }
         public Dictionary<string, bool> RequestParameters { get; set; }
         public string RequestValidatorId { get; set; }
+        public List<AwsApiMethodResponse> Responses { get; set; } = new List<AwsApiMethodResponse>();
+        public AwsApiMethodIntegration Integration { get; set; }
     }
 }
