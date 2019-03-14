@@ -52,9 +52,9 @@ namespace Boxnet.Aws.Mvp.Iam
         }
 
         protected string NewNameFor(string name)
-        {
-            if (name.StartsWith("SummerProd"))
-                return name.Replace("SummerProd_", Prefix());
+        {            
+            if (name.StartsWith(Prefix()))
+                name = string.Join("", name.Split('_').Skip(1));
 
             return string.Format("{0}{1}", Prefix(), name);
         }

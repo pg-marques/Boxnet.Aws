@@ -21,10 +21,12 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Lambdas
 
         private const string StackName = "Summer";
         private const string StackEnvironment = "Homolog";
-        private const string FilterName = "SummerProd";
-        private const string VPCName = "SummerProd_REDE_BOXNET";
-        private const string SubnetsPrefix = "SummerProd_SUB_MIDDLE_";
-        private const string SecurityGroupName = "SummerProd_lambda-integracoes";
+        private const string FilterName = "Morpheus";
+        private const string FilterLambdaSpecialName = "GetPhotoFacebook";
+        private const string VPCName = "REDE_BOXNET";
+        private const string SubnetsPrefix = "SUB_MIDDLE_";
+        private const string SecurityGroupName = "lambda-integracoes";
+        private const string RolePrefix = "AWSLambdasMorpheus";
         private const string DirectoryPath = @"C:\Users\paul.marques\Desktop\InfraApp\Temp";
         [TestMethod]
         public async Task TestLambdas()
@@ -46,7 +48,7 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Lambdas
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion))
             {
-                await service.CopyAllRolesAsync(FilterName);
+                await service.FillStackWithExistingRoles(new ResourceNamePrefixInsensitiveCaseFilter(RolePrefix));
             }
 
             using (var service = new VpcsService(
@@ -58,7 +60,7 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Lambdas
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion))
             {
-                await service.CopyAllNetworkingResources(
+                await service.FillStackAsync(
                     new ResourceNamePrefixInsensitiveCaseFilter(VPCName),
                     new ResourceNamePrefixInsensitiveCaseFilter(SubnetsPrefix),
                     new ResourceNamePrefixInsensitiveCaseFilter(SecurityGroupName));
@@ -75,8 +77,8 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Lambdas
                 DirectoryPath))
             {
                 await service.CopyAsync(
-                    filter, 
-                    stack.IamRoles.FirstOrDefault(item => item.Id.NewName.EndsWith("AWSLambdasMorpheus")),
+                    new OrFilter(new ResourceNamePrefixInsensitiveCaseFilter(FilterName), new EqualsCaseInsensitiveFilter(FilterLambdaSpecialName)), 
+                    stack.IamRoles.FirstOrDefault(item => item.Id.NewName.EndsWith("AWSLambdasMorpheus") && item.Id.NewName.StartsWith("Summer")),
                     stack.Vpcs.First().Subnets,
                     stack.Vpcs.First().SecurityGroups);
             }

@@ -23,5 +23,6 @@ namespace Boxnet.Aws.Mvp.Apis
         public string HttpMethod { get; set; }
         public string Uri { get; set; }
         public bool IsCreated { get; set; }
+        public List<AwsApiMethodIntegrationResponse> Responses { get; set; } = new List<AwsApiMethodIntegrationResponse>();
     }
 }

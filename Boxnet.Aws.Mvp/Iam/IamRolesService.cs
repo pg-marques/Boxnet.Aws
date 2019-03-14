@@ -14,7 +14,7 @@ namespace Boxnet.Aws.Mvp.Iam
         {
         }
 
-        public async Task CopyAllRolesAsync(string nameFilter)
+        public async Task CopyAllRolesAsync(IResourceNameFilter nameFilter)
         {
             var collectionData = await GetAllRolesAsync(nameFilter);
             var collection = ConvertToRoles(collectionData);
@@ -23,12 +23,20 @@ namespace Boxnet.Aws.Mvp.Iam
             stack.IamRoles = collection;
         }
 
-        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>>> GetAllRolesAsync(string nameFilter)
+        public async Task FillStackWithExistingRoles(IResourceNameFilter filter)
+        {
+            var collectionData = await GetAllRolesAsync(filter);
+            var collection = ConvertToRoles(collectionData);
+            await FilterAsync(collection);
+            stack.IamRoles = collection;
+        }
+
+        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>>> GetAllRolesAsync(IResourceNameFilter nameFilter)
         {
             var collectionData = await GetRolesFromSourceAsync(nameFilter);
-            var collectionDataWithPolicies = await GetAllPoliciesAsync(collectionData);
-            var collectionDataWithInlinePoliciesNames = await GetAllInlinePoliciesNamesAsync(collectionDataWithPolicies);
-            return await GetAllInlinePoliciesAsync(collectionDataWithInlinePoliciesNames);
+            var collectionDataWithPolicies = await GetAllPoliciesFromSourceAsync(collectionData);
+            var collectionDataWithInlinePoliciesNames = await GetAllInlinePoliciesNamesFromSourceAsync(collectionDataWithPolicies);
+            return await GetAllInlinePoliciesFromSourceAsync(collectionDataWithInlinePoliciesNames);
         }
 
         private List<IamRole> ConvertToRoles(List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>> collection)
@@ -61,7 +69,7 @@ namespace Boxnet.Aws.Mvp.Iam
             }).ToList();
         }
 
-        private async Task<List<Tuple<Role, List<AttachedPolicyType>>>> GetAllPoliciesAsync(List<Role> rolesDataCollection)
+        private async Task<List<Tuple<Role, List<AttachedPolicyType>>>> GetAllPoliciesFromSourceAsync(List<Role> rolesDataCollection)
         {
             var collection = new List<Tuple<Role, List<AttachedPolicyType>>>();
 
@@ -90,7 +98,7 @@ namespace Boxnet.Aws.Mvp.Iam
             return collection;
         }
 
-        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>>> GetAllInlinePoliciesNamesAsync(List<Tuple<Role, List<AttachedPolicyType>>> rolesDataCollection)
+        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>>> GetAllInlinePoliciesNamesFromSourceAsync(List<Tuple<Role, List<AttachedPolicyType>>> rolesDataCollection)
         {
             var collection = new List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>>();
 
@@ -119,7 +127,7 @@ namespace Boxnet.Aws.Mvp.Iam
             return collection;
         }
 
-        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>>> GetAllInlinePoliciesAsync(List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>> rolesDataCollection)
+        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>>> GetAllInlinePoliciesFromSourceAsync(List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>> rolesDataCollection)
         {
             var collection = new List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>>();
 
@@ -144,7 +152,7 @@ namespace Boxnet.Aws.Mvp.Iam
             return collection;
         }
 
-        private async Task<List<string>> GetAllInlinePoliciesNamesAsync(List<Role> rolesDataCollection)
+        private async Task<List<string>> GetAllInlinePoliciesNamesFromSourcesAsync(List<Role> rolesDataCollection)
         {
             var collection = new List<string>();
 
@@ -170,9 +178,9 @@ namespace Boxnet.Aws.Mvp.Iam
             return collection;
         }
 
-        private async Task<List<Role>> GetRolesFromSourceAsync(string nameFilter)
+        private async Task<List<Role>> GetRolesFromSourceAsync(IResourceNameFilter nameFilter)
         {
-            var roles = await GetRolesAsync(new ResourceNameContainsTermInsensitiveCaseFilter(nameFilter), sourceClient);
+            var roles = await GetRolesAsync(nameFilter, sourceClient);
 
             return roles;//.Where(role => role.Tags == null || role.Tags.Count() < 1).ToList();
         }
@@ -192,6 +200,122 @@ namespace Boxnet.Aws.Mvp.Iam
 
                 return true;
             }).ToList();
+        }
+
+        private async Task<List<Tuple<Role, List<AttachedPolicyType>>>> GetAllPoliciesFromDestinationAsync(List<Role> rolesDataCollection)
+        {
+            var collection = new List<Tuple<Role, List<AttachedPolicyType>>>();
+
+            foreach (var roleData in rolesDataCollection)
+            {
+                var policies = new List<AttachedPolicyType>();
+                string marker = null;
+                do
+                {
+                    var request = new ListAttachedRolePoliciesRequest()
+                    {
+                        Marker = marker,
+                        RoleName = roleData.RoleName
+                    };
+                    var response = await destinationClient.ListAttachedRolePoliciesAsync(request);
+
+                    policies.AddRange(response.AttachedPolicies);
+
+                    marker = response.Marker;
+
+                } while (marker != null);
+
+                collection.Add(new Tuple<Role, List<AttachedPolicyType>>(roleData, policies));
+            }
+
+            return collection;
+        }
+
+        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>>> GetAllInlinePoliciesNamesFromDestinationAsync(List<Tuple<Role, List<AttachedPolicyType>>> rolesDataCollection)
+        {
+            var collection = new List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>>();
+
+            foreach (var roleData in rolesDataCollection)
+            {
+                var policiesNames = new List<string>();
+                string marker = null;
+                do
+                {
+                    var request = new ListRolePoliciesRequest()
+                    {
+                        Marker = marker,
+                        RoleName = roleData.Item1.RoleName
+                    };
+                    var response = await destinationClient.ListRolePoliciesAsync(request);
+
+                    policiesNames.AddRange(response.PolicyNames);
+
+                    marker = response.Marker;
+
+                } while (marker != null);
+
+                collection.Add(new Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>(roleData, policiesNames));
+            }
+
+            return collection;
+        }
+
+        private async Task<List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>>> GetAllInlinePoliciesFromDestinationAsync(List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<string>>> rolesDataCollection)
+        {
+            var collection = new List<Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>>();
+
+            foreach (var roleData in rolesDataCollection)
+            {
+                var policies = new List<GetRolePolicyResponse>();
+
+                foreach (var policyName in roleData.Item2)
+                {
+                    var request = new GetRolePolicyRequest()
+                    {
+                        RoleName = roleData.Item1.Item1.RoleName,
+                        PolicyName = policyName
+                    };
+                    var response = await destinationClient.GetRolePolicyAsync(request);
+
+                    policies.Add(response);
+                }
+                collection.Add(new Tuple<Tuple<Role, List<AttachedPolicyType>>, List<GetRolePolicyResponse>>(roleData.Item1, policies));
+            }
+
+            return collection;
+        }
+
+        private async Task<List<string>> GetAllInlinePoliciesNamesFromDestinationAsync(List<Role> rolesDataCollection)
+        {
+            var collection = new List<string>();
+
+            foreach (var roleData in rolesDataCollection)
+            {
+                string marker = null;
+                do
+                {
+                    var request = new ListRolePoliciesRequest()
+                    {
+                        Marker = marker,
+                        RoleName = roleData.RoleName
+                    };
+                    var response = await destinationClient.ListRolePoliciesAsync(request);
+
+                    collection.AddRange(response.PolicyNames);
+
+                    marker = response.Marker;
+
+                } while (marker != null);
+            }
+
+            return collection;
+        }
+
+        private async Task<List<Role>> GetRolesFromDestinationAsync()
+        {
+            var roles = await GetRolesAsync(new ResourceNamePrefixInsensitiveCaseFilter(Prefix()), destinationClient);
+
+            return roles;//.Where(role => role.Tags == null || role.Tags.Count() < 1).ToList();
         }
 
         private async Task<List<Role>> GetRolesAsync(IResourceNameFilter filter, AmazonIdentityManagementServiceClient client)
@@ -257,27 +381,6 @@ namespace Boxnet.Aws.Mvp.Iam
 
             } while (marker != null);
 
-            //var items = collection.Where(item => item.Id.PreviousName.StartsWith("AWSLambdasMorpheus")).ToList();
-            //foreach (var item in items)
-            //{
-            //    foreach(var policy in item.AttachedPoliciesIds)
-            //    {
-            //        var request = new AttachRolePolicyRequest()
-            //        {
-            //            PolicyArn = policies.FirstOrDefault(existingPolicy =>
-            //            {
-            //                var newName = policy.PreviousName.StartsWith("AmazonMorpheusProject") ? NewNameFor(policy.PreviousName) : policy.PreviousName ;
-            //                return newName == existingPolicy.PolicyName;
-            //            })?.Arn,
-            //            RoleName = item.Id.NewName
-            //        };
-            //        if (!string.IsNullOrWhiteSpace(request.PolicyArn))
-            //        {
-            //            var response = await destinationClient.AttachRolePolicyAsync(request);
-            //        }
-            //    }
-            //}
-
             foreach (var item in filteredCollection)
             {
                 var request = new CreateRoleRequest()
@@ -295,9 +398,9 @@ namespace Boxnet.Aws.Mvp.Iam
                 item.Id.NewArn = response.Role.Arn;
             }
 
-            foreach (var item in filteredCollection)
+            foreach (var item in collection)
             {
-                foreach (var policy in item.InlinePolicies)
+                foreach (var policy in item.InlinePolicies.Where(it => !it.Created).ToList())
                 {
                     var request = new PutRolePolicyRequest()
                     {
@@ -307,6 +410,7 @@ namespace Boxnet.Aws.Mvp.Iam
                     };
 
                     await destinationClient.PutRolePolicyAsync(request);
+                    policy.Created = true;
                 }                
             }
         }
@@ -314,13 +418,32 @@ namespace Boxnet.Aws.Mvp.Iam
         private async Task<List<IamRole>> FilterAsync(List<IamRole> collection)
         {
             var existingCollection = await GetRolesFromDestinationAsync(Prefix());
+            //var collectionData = await GetRolesFromDestinationAsync();
+            var collectionDataWithPolicies = await GetAllPoliciesFromDestinationAsync(existingCollection);
+            var collectionDataWithInlinePoliciesNames = await GetAllInlinePoliciesNamesFromDestinationAsync(collectionDataWithPolicies);
+            var collectionDataWithInlinePolicies = await GetAllInlinePoliciesFromDestinationAsync(collectionDataWithInlinePoliciesNames);
+            var items = ConvertToRoles(collectionDataWithInlinePolicies);
+
             var newCollection = collection.ToList();
             foreach (var item in newCollection)
             {
-                var arn = existingCollection.FirstOrDefault(existingItem => existingItem.RoleName == item.Id.NewName)?.Arn;
+                var existingItem = items.FirstOrDefault(it => it.Id.PreviousName == item.Id.NewName);
 
-                if (!string.IsNullOrWhiteSpace(arn))
-                    item.Id.NewArn = arn;
+                if (existingItem != null)
+                {
+                    var arn = existingItem.Id.PreviousArn;
+
+                    if (!string.IsNullOrWhiteSpace(arn))
+                        item.Id.NewArn = arn;
+
+                    if(existingItem.InlinePolicies != null)
+                    foreach (var policy in item.InlinePolicies)
+                    {
+                            var existingPolicy = existingItem.InlinePolicies.FirstOrDefault(it => it.PreviousName == policy.NewName);
+                            if (existingPolicy != null)
+                                policy.Created = true;
+                    }
+                }
             }
 
             return newCollection.Where(item => string.IsNullOrWhiteSpace(item.Id.NewArn) && !item.Id.PreviousName.StartsWith("SummerHomolog")).ToList();

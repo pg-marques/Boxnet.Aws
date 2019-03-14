@@ -91,8 +91,20 @@ namespace Boxnet.Aws.Mvp.Apis
 
                     var response = await destinationClient.GetMethodAsync(request);
 
-                    if (response.MethodIntegration != null)
-                        method.Integration.IsCreated = true;
+                    if (response?.MethodIntegration != null)
+                    {
+                        if (method.Integration.Uri == response.MethodIntegration.Uri)
+                            method.Integration.IsCreated = true;
+
+                        if (method?.Integration?.Responses != null && response.MethodIntegration.IntegrationResponses != null)
+                            foreach (var integrationResponse in method.Integration.Responses)
+                            {
+                                if (response.MethodIntegration.IntegrationResponses.ContainsKey(integrationResponse.HttpMethod) &&
+                                    response.MethodIntegration.IntegrationResponses[integrationResponse.HttpMethod].StatusCode == integrationResponse.StatusCode)
+                                    integrationResponse.Created = true;
+                            }
+                    }
+
                 }
 
                 foreach (var method in resource.Methods)
@@ -125,6 +137,25 @@ namespace Boxnet.Aws.Mvp.Apis
                             method.Integration.IsCreated = true;
                         }
                     }
+
+                    if (method?.Integration?.Responses != null)
+                        foreach (var integrationResponse in method.Integration.Responses)
+                        {
+                            var integrationResponseRequest = new PutIntegrationResponseRequest()
+                            {
+                                ContentHandling = integrationResponse.ContentHandling,
+                                HttpMethod = integrationResponse.HttpMethod,
+                                ResourceId = integrationResponse.ResourceId.NewName,
+                                ResponseParameters = integrationResponse.ResponseParameters,
+                                ResponseTemplates = integrationResponse.ResponseTemplates,
+                                RestApiId = integrationResponse.RestApiId.NewId,
+                                SelectionPattern = integrationResponse.SelectionPattern,
+                                StatusCode = integrationResponse.StatusCode
+                            };
+
+                            var response = await destinationClient.PutIntegrationResponseAsync(integrationResponseRequest);
+                            integrationResponse.Created = true;
+                        }
                 }
             }
 
@@ -163,7 +194,7 @@ namespace Boxnet.Aws.Mvp.Apis
                             if (response.RequestModels != null)
                                 foreach (var model in response.RequestModels)
                                 {
-                                    var existingModel = api.Models?.FirstOrDefault(it => it.Id.PreviousId == model.Id.PreviousId);
+                                    var existingModel = api.Models?.FirstOrDefault(it => it.Id.PreviousName == model.Id.PreviousName);
                                     if (existingModel != null)
                                         model.Id = existingModel.Id;
                                 }
@@ -228,7 +259,7 @@ namespace Boxnet.Aws.Mvp.Apis
 
                     validator.Id.NewId = response.Id;
 
-                    await Task.Delay(250);
+                    await Task.Delay(200);
                 }
             }
         }
@@ -248,7 +279,7 @@ namespace Boxnet.Aws.Mvp.Apis
                     };
 
                     var response = await destinationClient.GetRequestValidatorsAsync(request);
-                    await Task.Delay(250);
+                    await Task.Delay(200);
 
                     position = response.Position;
 
@@ -280,7 +311,7 @@ namespace Boxnet.Aws.Mvp.Apis
                     };
 
                     var response = await sourceClient.GetRequestValidatorsAsync(request);
-                    await Task.Delay(250);
+                    await Task.Delay(200);
 
                     position = response.Position;
 
@@ -378,7 +409,7 @@ namespace Boxnet.Aws.Mvp.Apis
                     var authResponse = await destinationClient.CreateAuthorizerAsync(authRequest);
 
                     authorizer.Id.NewId = authResponse.Id;
-                    await Task.Delay(250);
+                    await Task.Delay(200);
                 }
             }
         }
@@ -400,7 +431,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 existingAuthorizers.AddRange(response.Items);
 
                 position = response.Position;
-                await Task.Delay(250);
+                await Task.Delay(200);
 
             } while (position != null);
             return existingAuthorizers;
@@ -423,7 +454,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 authorizers.AddRange(response.Items);
 
                 position = response.Position;
-                await Task.Delay(250);
+                await Task.Delay(200);
 
             } while (position != null);
             return authorizers;
@@ -456,7 +487,7 @@ namespace Boxnet.Aws.Mvp.Apis
 
                 var response = await destinationClient.CreateModelAsync(request);
                 model.Id.NewId = response.Id;
-                await Task.Delay(250);
+                await Task.Delay(200);
             }
         }
 
@@ -501,7 +532,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await destinationClient.GetModelsAsync(request);
-                await Task.Delay(250);
+                await Task.Delay(200);
                 models.AddRange(response.Items);
 
                 position = response.Position;
@@ -529,7 +560,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 models.AddRange(response.Items);
 
                 position = response.Position;
-                await Task.Delay(250);
+                await Task.Delay(200);
 
             } while (position != null);
 
@@ -568,7 +599,7 @@ namespace Boxnet.Aws.Mvp.Apis
             };
 
             var response = await destinationClient.GetResourceAsync(request);
-            await Task.Delay(250);
+            await Task.Delay(200);
 
             if (response?.ResourceMethods != null && !response.ResourceMethods.ContainsKey(method.Verb))
             {
@@ -592,7 +623,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var methodResponse = await destinationClient.PutMethodAsync(methodRequest);
-                await Task.Delay(250);
+                await Task.Delay(200);
             }
 
 
@@ -613,7 +644,7 @@ namespace Boxnet.Aws.Mvp.Apis
             method.OperationName = response.OperationName;
             method.RequestParameters = response.RequestParameters;
 
-            await Task.Delay(250);
+            await Task.Delay(200);
         }
 
         private async Task CreateResourcesAsync(List<AwsApi> collection)
@@ -644,7 +675,7 @@ namespace Boxnet.Aws.Mvp.Apis
 
                 var response = await destinationClient.CreateResourceAsync(request);
                 resource.Id.NewName = response.Id;
-                await Task.Delay(250);
+                await Task.Delay(200);
             }
 
             if (resource.Children != null && resource.Children.Count() > 0)
@@ -668,11 +699,8 @@ namespace Boxnet.Aws.Mvp.Apis
                             if (method?.Responses != null)
                                 foreach (var response in method.Responses)
                                 {
-                                    var existingResponse = existingMethod.MethodResponses?.FirstOrDefault(it => it.Key == response.HttpMethod && it.Value.StatusCode == response.StatusCode);
-                                    if (existingResponse != null)
-                                    {
+                                    if (existingMethod?.MethodResponses != null && existingMethod.MethodResponses.ContainsKey(response.StatusCode))
                                         response.IsCreated = true;
-                                    }
                                 }
 
                         }
@@ -697,11 +725,35 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await destinationClient.GetResourcesAsync(request);
-                await Task.Delay(250);
+                await Task.Delay(200);
                 resources.AddRange(response.Items);
 
                 position = response.Position;
             } while (position != null);
+
+            foreach (var resource in resources)
+            {
+                if (resource.ResourceMethods != null)
+                    foreach (var method in resource.ResourceMethods)
+                    {
+                        var request = new GetMethodRequest()
+                        {
+                            HttpMethod = method.Key,
+                            ResourceId = resource.Id,
+                            RestApiId = item.Id.NewId
+                        };
+
+                        var response = await destinationClient.GetMethodAsync(request);
+
+                        if (response?.MethodResponses != null)
+                            method.Value.MethodResponses = response.MethodResponses;
+
+                        if (response?.MethodIntegration != null)
+                            method.Value.MethodIntegration = response.MethodIntegration;
+
+                        await Task.Delay(200);
+                    }
+            }
 
             return resources;
         }
@@ -732,10 +784,10 @@ namespace Boxnet.Aws.Mvp.Apis
                     };
 
                     var response = await sourceClient.GetMethodAsync(request);
-                    if (response?.MethodResponses != null && response.MethodResponses.Count() > 0)
+                    if (response?.MethodResponses != null && response.MethodResponses.Count() > 0 && item.ResourceMethods.ContainsKey(method.Key))
                         item.ResourceMethods[method.Key].MethodResponses = response.MethodResponses;
 
-                    if (response?.MethodIntegration != null)
+                    if (response?.MethodIntegration != null && item.ResourceMethods.ContainsKey(method.Key))
                     {
                         item.ResourceMethods[method.Key].MethodIntegration = response.MethodIntegration;
                     }
@@ -749,7 +801,7 @@ namespace Boxnet.Aws.Mvp.Apis
                         var lambda = stack.Lambdas.FirstOrDefault(it => method.Value.MethodIntegration.Uri.Contains(it.Id.PreviousArn));
 
                         if (lambda != null)
-                            uri = string.Format("arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/{0}/invocations", lambda.Id.NewArn);
+                            uri = method.Value.MethodIntegration.Uri.Replace(lambda.Id.PreviousArn, lambda.Id.NewArn);
                     }
 
                     resource.Methods.Add(new AwsApiMethod()
@@ -789,7 +841,18 @@ namespace Boxnet.Aws.Mvp.Apis
                             RequestTemplates = method.Value.MethodIntegration.RequestTemplates,
                             TimeoutInMillis = method.Value.MethodIntegration.TimeoutInMillis,
                             Type = method.Value.MethodIntegration.Type,
-                            Uri = uri
+                            Uri = uri,
+                            Responses = method.Value.MethodIntegration.IntegrationResponses?.Select(it => new AwsApiMethodIntegrationResponse()
+                            {
+                                RestApiId = api.Id,
+                                ContentHandling = it.Value.ContentHandling,
+                                HttpMethod = method.Key,
+                                ResponseParameters = it.Value.ResponseParameters,
+                                ResponseTemplates = it.Value.ResponseTemplates,
+                                SelectionPattern = it.Value.SelectionPattern,
+                                StatusCode = it.Value.StatusCode,
+                                ResourceId = resource.Id
+                            }).ToList()
                         }
                     });
                 }
@@ -817,7 +880,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await sourceClient.GetResourcesAsync(request);
-                await Task.Delay(250);
+                await Task.Delay(200);
                 resources.AddRange(response.Items);
 
                 position = response.Position;
@@ -857,7 +920,7 @@ namespace Boxnet.Aws.Mvp.Apis
 
                 var response = await destinationClient.CreateRestApiAsync(request);
                 item.Id.NewId = response.Id;
-                await Task.Delay(250);
+                await Task.Delay(200);
             }
         }
 
@@ -907,7 +970,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await destinationClient.GetRestApisAsync(request);
-                await Task.Delay(250);
+                await Task.Delay(200);
 
                 apis.AddRange(response.Items.Where(item => filter.IsValid(item.Name)));
 
@@ -931,7 +994,7 @@ namespace Boxnet.Aws.Mvp.Apis
                 };
 
                 var response = await sourceClient.GetRestApisAsync(request);
-
+                await Task.Delay(200);
                 apis.AddRange(response.Items.Where(item => !newApisFilter.IsValid(item.Name) && filter.IsValid(item.Name)));
 
                 position = response.Position;

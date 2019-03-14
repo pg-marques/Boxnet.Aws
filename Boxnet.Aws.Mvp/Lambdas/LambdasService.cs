@@ -61,61 +61,70 @@ namespace Boxnet.Aws.Mvp.Lambdas
             stack.Lambdas = collection;
         }
 
-        private async Task DownloadAsync(List<FunctionConfiguration> lambdas)
+        private async Task DownloadAsync(List<Lambda> lambdas)
         {
             foreach (var lambda in lambdas)
             {
                 var urlRequest = new GetFunctionRequest()
                 {
-                    FunctionName = lambda.FunctionName
+                    FunctionName = lambda.Id.PreviousName
                 };
 
                 var urlResponse = await sourceClient.GetFunctionAsync(urlRequest);
                 var url = urlResponse.Code.Location;
                 using (WebClient webClient = new WebClient())
                 {
-                    var directory = Path.Combine(directoryPath, "lambdas");
+                    var directory = Path.Combine(directoryPath, "lambdas", Prefix().Trim('_'), DateTime.UtcNow.Date.ToString("yyyyMMdd"));
 
                     if (!Directory.Exists(directory))
                         Directory.CreateDirectory(directory);
 
-                    webClient.DownloadFile(url, Path.Combine(directory, string.Format("{0}.zip", lambda.FunctionName)));
+                    await webClient.DownloadFileTaskAsync(url, Path.Combine(directory, string.Format("{0}.zip", lambda.Id.PreviousName)));
                 }
             }
         }
 
         private List<Lambda> Convert(List<FunctionConfiguration> functions, IamRole role, IEnumerable<AwsSubnet> subnets, IEnumerable<AwsSecurityGroup> groups)
         {
-            return functions.Select(item => new Lambda()
+            return functions.Select(item =>
             {
-                DeadLetterConfig = item.DeadLetterConfig,
-                Description = item.Description,
-                Handler = item.Handler,
-                Id = new ResourceIdWithArn()
+                DateTime? lastModified = null;
+
+                if (DateTime.TryParse(item.LastModified, out var newLastModified))
+                    lastModified = newLastModified;
+
+                return new Lambda()
                 {
-                    PreviousArn = item.FunctionArn,
-                    PreviousName = item.FunctionName,
-                    NewName = NewNameFor(item.FunctionName)
-                },
-                KMSKeyArn = item.KMSKeyArn,
-                Layers = null,
-                MemorySize = item.MemorySize,
-                PublishOnCreation = true,
-                Role = role != null ? role.Id.NewArn : null,
-                Runtime = item.Runtime,
-                Timeout = item.Timeout,
-                TracingConfig =
+                    DeadLetterConfig = item.DeadLetterConfig,
+                    Description = item.Description,
+                    Handler = item.Handler,
+                    Id = new ResourceIdWithArn()
+                    {
+                        PreviousArn = item.FunctionArn,
+                        PreviousName = item.FunctionName,
+                        NewName = NewNameFor(item.FunctionName)
+                    },
+                    KMSKeyArn = item.KMSKeyArn,
+                    Layers = null,
+                    MemorySize = item.MemorySize,
+                    PublishOnCreation = true,
+                    Role = role != null ? role.Id.NewArn : null,
+                    Runtime = item.Runtime,
+                    Timeout = item.Timeout,
+                    TracingConfig =
                     item.TracingConfig != null ?
                     new TracingConfig()
                     {
                         Mode = item.TracingConfig.Mode
                     } :
                     null,
-                VpcConfig =  (subnets != null && groups != null) ? new VpcConfig()
-                {
-                    SecurityGroupIds = groups.Select(group => group.Id.NewId).ToList(),
-                    SubnetIds = subnets.Select(subnet => subnet.Id.NewId).ToList()
-                } : null
+                    VpcConfig = (subnets != null && groups != null) ? new VpcConfig()
+                    {
+                        SecurityGroupIds = groups.Select(group => group.Id.NewId).ToList(),
+                        SubnetIds = subnets.Select(subnet => subnet.Id.NewId).ToList()
+                    } : null,
+                    LastModifiedOnDestination = lastModified
+                };
             }).ToList();
         }
 
@@ -131,15 +140,16 @@ namespace Boxnet.Aws.Mvp.Lambdas
         {
             await UpdateWithExistingDataAsync(lambdas);
 
-            var pendinglambdas = lambdas.Where(vpc => string.IsNullOrWhiteSpace(vpc.Id.NewArn)).ToList();
-
-            if (pendinglambdas == null || pendinglambdas.Count < 1)
+            var pendingLambdas = lambdas.Where(it => 
+                string.IsNullOrWhiteSpace(it.Id.NewArn) || 
+                (it.LastModifiedOnSource != null && it.LastModifiedOnDestination != null  && it.LastModifiedOnSource.Value > it.LastModifiedOnDestination.Value)).ToList();
+            if (pendingLambdas == null || pendingLambdas.Count < 1)
                 return;
 
-            //await DownloadAsync(data);
-            foreach (var lambda in pendinglambdas)
-            {
-                var filePath = Path.Combine(directoryPath, "lambdas", string.Format("{0}.zip", lambda.Id.PreviousName.Replace("SummerProd_", string.Empty)));
+            await DownloadAsync(pendingLambdas);
+            foreach (var lambda in pendingLambdas)
+            {                
+                var filePath = Path.Combine(directoryPath, "lambdas", Prefix().Trim('_'),DateTime.UtcNow.Date.ToString("yyyyMMdd"), string.Format("{0}.zip", lambda.Id.PreviousName.Replace("SummerProd_", string.Empty)));
                 var bytes = File.ReadAllBytes(filePath);
                 var request = new CreateFunctionRequest()
                 {
@@ -167,6 +177,7 @@ namespace Boxnet.Aws.Mvp.Lambdas
 
                 var response = await destinationClient.CreateFunctionAsync(request);
                 lambda.Id.NewArn = response.FunctionArn;
+                lambda.LastModifiedOnDestination = DateTime.UtcNow;
             }
         }
 
@@ -175,9 +186,14 @@ namespace Boxnet.Aws.Mvp.Lambdas
             var existingLambdas = await ListLambdasOnDestinationAsync();
             foreach (var lambda in lambdas)
             {
-                var existingVpc = existingLambdas.FirstOrDefault(item => item.FunctionName == lambda.Id.NewName);
-                if (existingVpc != null)
-                    lambda.Id.NewArn = existingVpc.FunctionArn;
+                var existingLambda = existingLambdas.FirstOrDefault(item => item.FunctionName == lambda.Id.NewName);
+                if (existingLambda != null)
+                {
+                    if (DateTime.TryParse(existingLambda.LastModified, out var lastModified))
+                        lambda.LastModifiedOnDestination = lastModified;
+
+                    lambda.Id.NewArn = existingLambda.FunctionArn;
+                }
             }
         }
 

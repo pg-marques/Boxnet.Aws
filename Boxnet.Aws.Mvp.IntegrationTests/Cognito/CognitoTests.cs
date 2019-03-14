@@ -19,11 +19,10 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Cognito
         private readonly string defaultAwsEndpointRegion = Environment.GetEnvironmentVariable("DefaultAwsEndpointRegion");
 
         private const string StackName = "Summer";
-        private const string StackEnvironment = "Prod";
+        private const string StackEnvironment = "Homolog";
+        private const string FilterLambdaSpecialName = "GetPhotoFacebook";
         private const string FilterName = "Morpheus";
-        private const string VPCName = "REDE_BOXNET";
-        private const string SubnetsPrefix = "SUB_MIDDLE_";
-        private const string SecurityGroupName = "lambda-integracoes";
+        private const string RolePrefix = "AWSLambdasMorpheus";
         private const string DirectoryPath = @"C:\Users\paul.marques\Desktop\InfraApp\Temp";
 
         [TestMethod]
@@ -36,6 +35,18 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Cognito
                 Environment = StackEnvironment
             };
 
+            using (var service = new IamPoliciesService(
+                stack,
+                boxnetAwsAccessKeyId,
+                boxnetAwsAccessKey,
+                defaultAwsEndpointRegion,
+                boxnetAwsAccessKeyId,
+                boxnetAwsAccessKey,
+                defaultAwsEndpointRegion))
+            {
+                await service.CopyAllPoliciesAsync(FilterName);
+            }
+
             using (var service = new IamRolesService(
                 stack,
                 boxnetAwsAccessKeyId,
@@ -44,23 +55,11 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Cognito
                 boxnetAwsAccessKeyId,
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion))
-            {
-                await service.CopyAllRolesAsync(FilterName);
-            }
-
-            using (var service = new VpcsService(
-                stack,
-                boxnetAwsAccessKeyId,
-                boxnetAwsAccessKey,
-                defaultAwsEndpointRegion,
-                boxnetAwsAccessKeyId,
-                boxnetAwsAccessKey,
-                defaultAwsEndpointRegion))
-            {
-                await service.CopyAllNetworkingResources(
-                    new ResourceNamePrefixInsensitiveCaseFilter(VPCName),
-                    new ResourceNamePrefixInsensitiveCaseFilter(SubnetsPrefix),
-                    new ResourceNamePrefixInsensitiveCaseFilter(SecurityGroupName));
+            {                
+                await service.CopyAllRolesAsync(
+                    new AndFilter(
+                        new ResourceNameContainsTermInsensitiveCaseFilter(FilterName),
+                        new NotFilter(new ResourceNamePrefixInsensitiveCaseFilter(string.Format("{0}", StackName)))));
             }
 
             using (var service = new LambdasService(
@@ -73,13 +72,8 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Cognito
                  defaultAwsEndpointRegion,
                  DirectoryPath))
             {
-                await service.CopyAsync(
-                    filter,
-                    stack.IamRoles.FirstOrDefault(item => item.Id.NewName.EndsWith("AWSLambdasMorpheus")),
-                    stack.Vpcs.First().Subnets,
-                    stack.Vpcs.First().SecurityGroups);
+                await service.FillStackWithLambdasOnDestinationAsync(new OrFilter(new ResourceNamePrefixInsensitiveCaseFilter(FilterName), new EqualsCaseInsensitiveFilter(FilterLambdaSpecialName)));
             }
-
 
             using (var service = new UsersPoolsService(
                 stack,

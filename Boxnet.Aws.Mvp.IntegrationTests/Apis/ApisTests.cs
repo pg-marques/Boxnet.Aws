@@ -19,8 +19,9 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Apis
         private readonly string defaultAwsEndpointRegion = Environment.GetEnvironmentVariable("DefaultAwsEndpointRegion");
 
         private const string StackName = "Summer";
-        private const string StackEnvironment = "Prod";
+        private const string StackEnvironment = "Homolog";
         private const string FilterName = "Morpheus";
+        private const string FilterLambdaSpecialName = "GetPhotoFacebook";
         private const string DirectoryPath = @"C:\Users\paul.marques\Desktop\InfraApp\Temp";
 
         [TestMethod]
@@ -43,7 +44,7 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Apis
                 defaultAwsEndpointRegion,
                 DirectoryPath))
             {
-                await service.FillStackWithLambdasOnDestinationAsync(filter);
+                await service.FillStackWithLambdasOnDestinationAsync(new OrFilter(new ResourceNamePrefixInsensitiveCaseFilter(FilterName), new EqualsCaseInsensitiveFilter(FilterLambdaSpecialName)));
             }
 
             using (var service = new UsersPoolsService(

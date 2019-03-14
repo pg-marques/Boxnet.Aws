@@ -64,36 +64,66 @@ namespace Boxnet.Aws.Mvp.Newtworking
             stack.Vpcs = convertedCollection;
         }
 
-        private async Task CopySecurityGroupsAsync(List<AwsVpc> convertedCollection, IResourceNameFilter securityGroupsFilter)
+        public async Task FillStackAsync(IResourceNameFilter vpcFilter, IResourceNameFilter subnetsFilter, IResourceNameFilter securityGroupsFilter)
         {
-            var sourceSecurityGroups = await ListSecurityGroupsOnSourceAsync(convertedCollection, securityGroupsFilter);
-            foreach (var group in sourceSecurityGroups)
+            var collection = await ListVpcsOnSourceAsync(vpcFilter);
+            var convertedCollection = ConvertToVpcs(collection);
+            var existingVpcs = await ListVpcsOnDestinationAsync();
+            foreach (var vpc in convertedCollection)
             {
-                var vpc = convertedCollection.FirstOrDefault(item => item.Id.PreviousId == group.VpcId);
-                if (vpc != null)
-                    vpc.SecurityGroups.Add(new AwsSecurityGroup()
-                    {
-                        Id = new ResourceIdWithAwsId()
-                        {
-                            PreviousId = group.GroupId,
-                            PreviousName = group.Name(),
-                            NewName = NewNameFor(group.Name())
-                        },
-                        Description = group.Description,
-                        VpcId = vpc.Id
-                    });
+                var existingVpc = existingVpcs.FirstOrDefault(item => item.Name() == vpc.Id.NewName);
+                if (existingVpc != null)
+                    vpc.Id.NewId = existingVpc.VpcId;
+            }
+            await FillSubnetsAsync(subnetsFilter, convertedCollection);
+            var groups = await GetSecurityGroupsAsync(convertedCollection, securityGroupsFilter);
+            foreach (var vpc in convertedCollection)
+            {
+                vpc.Subnets = vpc.Subnets.Where(it => it.Id.NewId != null).ToList();
+                vpc.SecurityGroups = vpc.SecurityGroups.Where(it => it.Id.NewId != null).ToList();
             }
 
-            var groups = convertedCollection.SelectMany(item => item.SecurityGroups).ToList();
-            var existingSecurityGroups = await ListSecurityGroupsOnDestinationAsync(convertedCollection);
-            foreach (var subnet in groups)
+            stack.Vpcs = convertedCollection;
+        }
+
+        private async Task FillSubnetsAsync(IResourceNameFilter subnetsFilter, List<AwsVpc> convertedCollection)
+        {
+            var sourceSubnets = await ListSubnetsOnSourceAsync(convertedCollection, subnetsFilter);
+            foreach (var subnet in sourceSubnets)
             {
-                var existingSubnet = existingSecurityGroups.FirstOrDefault(item => item.Name() == subnet.Id.NewName);
+                var vpc = convertedCollection.FirstOrDefault(item => item.Id.PreviousId == subnet.VpcId);
+                if (vpc != null)
+                    vpc.Subnets.Add(new AwsSubnet()
+                    {
+                        Id = new AwsSubnetId()
+                        {
+                            PreviousArn = subnet.SubnetArn,
+                            PreviousId = subnet.SubnetId,
+                            PreviousName = subnet.Name(),
+                            NewName = NewNameFor(subnet.Name())
+                        },
+                        AvailabilityZone = subnet.AvailabilityZone,
+                        AvailabilityZoneId = subnet.AvailabilityZoneId,
+                        VpcId = vpc.Id,
+                        CidrBlock = subnet.CidrBlock
+                    });
+            }
+            var subnets = convertedCollection.SelectMany(item => item.Subnets).ToList();
+            var existingSubnets = await ListSubnetsOnDestinationAsync(convertedCollection);
+            foreach (var subnet in subnets)
+            {
+                var existingSubnet = existingSubnets.Subnets.FirstOrDefault(item => item.Name() == subnet.Id.NewName);
                 if (existingSubnet != null)
                 {
-                    subnet.Id.NewId = existingSubnet.GroupId;
+                    subnet.Id.NewId = existingSubnet.SubnetId;
+                    subnet.Id.NewArn = existingSubnet.SubnetArn;
                 }
             }
+        }
+
+        private async Task CopySecurityGroupsAsync(List<AwsVpc> convertedCollection, IResourceNameFilter securityGroupsFilter)
+        {
+            var groups = await GetSecurityGroupsAsync(convertedCollection, securityGroupsFilter);
 
             var pendingGroups = groups.Where(item => string.IsNullOrWhiteSpace(item.Id.NewId)).ToList();
 
@@ -135,6 +165,40 @@ namespace Boxnet.Aws.Mvp.Newtworking
 
                 await destinationClient.CreateTagsAsync(tagsRequest);
             }
+        }
+
+        private async Task<List<AwsSecurityGroup>> GetSecurityGroupsAsync(List<AwsVpc> convertedCollection, IResourceNameFilter securityGroupsFilter)
+        {
+            var sourceSecurityGroups = await ListSecurityGroupsOnSourceAsync(convertedCollection, securityGroupsFilter);
+            foreach (var group in sourceSecurityGroups)
+            {
+                var vpc = convertedCollection.FirstOrDefault(item => item.Id.PreviousId == group.VpcId);
+                if (vpc != null)
+                    vpc.SecurityGroups.Add(new AwsSecurityGroup()
+                    {
+                        Id = new ResourceIdWithAwsId()
+                        {
+                            PreviousId = group.GroupId,
+                            PreviousName = group.Name(),
+                            NewName = NewNameFor(group.Name())
+                        },
+                        Description = group.Description,
+                        VpcId = vpc.Id
+                    });
+            }
+
+            var groups = convertedCollection.SelectMany(item => item.SecurityGroups).ToList();
+            var existingSecurityGroups = await ListSecurityGroupsOnDestinationAsync(convertedCollection);
+            foreach (var subnet in groups)
+            {
+                var existingSubnet = existingSecurityGroups.FirstOrDefault(item => item.Name() == subnet.Id.NewName);
+                if (existingSubnet != null)
+                {
+                    subnet.Id.NewId = existingSubnet.GroupId;
+                }
+            }
+
+            return groups;
         }
 
         private async Task<List<SecurityGroup>> ListSecurityGroupsOnSourceAsync(List<AwsVpc> convertedCollection, IResourceNameFilter securityGroupsFilter)

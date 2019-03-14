@@ -38,7 +38,7 @@ namespace Boxnet.Aws.Mvp.IntegrationTests.Iam
                 boxnetAwsAccessKey,
                 defaultAwsEndpointRegion))
             {
-                await service.CopyAllRolesAsync(FilterName);
+                await service.CopyAllRolesAsync(new ResourceNamePrefixInsensitiveCaseFilter(FilterName));
             }
         }
 
