@@ -54,7 +54,7 @@ namespace Boxnet.Aws.Mvp.Sns
             await AddSubscriptionsOnSourceAsync(topics);
             await UpdateTopicsWithDestinationData(topics);
             await CreateOnDestinationAsync(topics);
-            var z = topicsData.AsReadOnly();
+            stack.SnsTopics = topics;
         }
 
         private async Task CreateOnDestinationAsync(List<SnsTopic> topics)

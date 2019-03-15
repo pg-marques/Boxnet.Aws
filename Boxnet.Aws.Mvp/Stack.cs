@@ -4,6 +4,7 @@ using Boxnet.Aws.Mvp.Iam;
 using Boxnet.Aws.Mvp.Lambdas;
 using Boxnet.Aws.Mvp.Newtworking;
 using Boxnet.Aws.Mvp.Sns;
+using Boxnet.Aws.Mvp.Sqs;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,5 +24,6 @@ namespace Boxnet.Aws.Mvp
         public IEnumerable<UserPool> UsersPools { get; set; }
         public IEnumerable<AwsApi> Apis { get; set; }
         public IEnumerable<SnsTopic> SnsTopics { get; set; }
+        public IEnumerable<SqsQueue> SqsQueues { get; set; }
     }
 }
