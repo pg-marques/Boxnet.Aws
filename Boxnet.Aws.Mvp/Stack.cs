@@ -1,4 +1,5 @@
 ﻿using Boxnet.Aws.Mvp.Apis;
+using Boxnet.Aws.Mvp.CloudWatch;
 using Boxnet.Aws.Mvp.Cognito;
 using Boxnet.Aws.Mvp.Iam;
 using Boxnet.Aws.Mvp.Lambdas;
@@ -25,5 +26,6 @@ namespace Boxnet.Aws.Mvp
         public IEnumerable<AwsApi> Apis { get; set; }
         public IEnumerable<SnsTopic> SnsTopics { get; set; }
         public IEnumerable<SqsQueue> SqsQueues { get; set; }
+        public IEnumerable<CloudWatchRule> CloudWatchRules { get; set; }
     }
 }

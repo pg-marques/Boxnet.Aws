@@ -15,9 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Boxnet.Aws.Model", "Boxnet.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MVP", "MVP", "{B9E299FE-0B24-41CB-9576-D716860644CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Mvp", "Boxnet.Aws.Mvp\Boxnet.Aws.Mvp.csproj", "{FA1956FD-1E27-4A74-B831-1FBA14A7222F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Boxnet.Aws.Mvp", "Boxnet.Aws.Mvp\Boxnet.Aws.Mvp.csproj", "{FA1956FD-1E27-4A74-B831-1FBA14A7222F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boxnet.Aws.Mvp.IntegrationTests", "Boxnet.Aws.Mvp.IntegrationTests\Boxnet.Aws.Mvp.IntegrationTests.csproj", "{D0BA6112-D44E-4D83-A713-8C5C0649E77A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Boxnet.Aws.Mvp.IntegrationTests", "Boxnet.Aws.Mvp.IntegrationTests\Boxnet.Aws.Mvp.IntegrationTests.csproj", "{D0BA6112-D44E-4D83-A713-8C5C0649E77A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
