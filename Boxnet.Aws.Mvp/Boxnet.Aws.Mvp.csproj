@@ -12,6 +12,7 @@
     <PackageReference Include="AWSSDK.IdentityManagement" Version="3.3.9.22" />
     <PackageReference Include="AWSSDK.Lambda" Version="3.3.19.23" />
     <PackageReference Include="AWSSDK.RDS" Version="3.3.39" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.3.26" />
   </ItemGroup>
 
 </Project>
