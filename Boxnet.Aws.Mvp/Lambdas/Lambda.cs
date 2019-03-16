@@ -24,5 +24,6 @@ namespace Boxnet.Aws.Mvp.Lambdas
         public VpcConfig VpcConfig { get; set; } 
         public DateTime? LastModifiedOnDestination { get; set; }
         public DateTime? LastModifiedOnSource { get; set; }
+        public string Version { get; set; }
     }
 }

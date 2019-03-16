@@ -4,6 +4,7 @@ using Boxnet.Aws.Mvp.Cognito;
 using Boxnet.Aws.Mvp.Iam;
 using Boxnet.Aws.Mvp.Lambdas;
 using Boxnet.Aws.Mvp.Newtworking;
+using Boxnet.Aws.Mvp.S3;
 using Boxnet.Aws.Mvp.Sns;
 using Boxnet.Aws.Mvp.Sqs;
 using System;
@@ -27,5 +28,6 @@ namespace Boxnet.Aws.Mvp
         public IEnumerable<SnsTopic> SnsTopics { get; set; }
         public IEnumerable<SqsQueue> SqsQueues { get; set; }
         public IEnumerable<CloudWatchRule> CloudWatchRules { get; set; }
+        public IEnumerable<AwsS3Bucket> Buckets { get; set; }
     }
 }

@@ -15,8 +15,15 @@
     <PackageReference Include="AWSSDK.IdentityManagement" Version="3.3.9.22" />
     <PackageReference Include="AWSSDK.Lambda" Version="3.3.19.23" />
     <PackageReference Include="AWSSDK.RDS" Version="3.3.39" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.31.24" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.3.26" />
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.62" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\newtonsoft.json\9.0.1\lib\netstandard1.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
